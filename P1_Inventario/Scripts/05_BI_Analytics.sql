@@ -33,6 +33,7 @@ SELECT
     c.Nombre AS Entidad_Origen,
     cat.Nombre AS Categoria_Producto,
     pr.Nombre AS Nombre_Producto,
+    pr.Modelo_Ref AS Modelo_Producto,
     dp.Cantidad,
     dp.PrecioUnitario,
     (dp.Cantidad * dp.PrecioUnitario) AS Subtotal,
@@ -49,10 +50,11 @@ SELECT
     v.Sucursal_Info AS Entidad_Origen,
     cat.Nombre AS Categoria_Producto,
     pr.Nombre AS Nombre_Producto,
+    pr.Modelo_Ref AS Modelo_Producto,
     v.Cantidad,
     v.PrecioAplicado AS PrecioUnitario,
     (v.Cantidad * v.PrecioAplicado) AS Subtotal,
-    'PAGADO | COMPLETADO' AS Estatus_Actual
+    'Pagado' AS Estatus_Actual
 FROM Operaciones.Ventas_Mostrador v
 JOIN Inventario.Productos pr ON v.ProductoID = pr.ProductoID
 JOIN Inventario.Categorias cat ON pr.CategoriaID = cat.CategoriaID;
@@ -68,6 +70,7 @@ CREATE OR ALTER VIEW Analytics.vw_Alerta_Logistica AS
 SELECT 
     prov.Nombre AS Proveedor,
     prod.Nombre AS Producto,
+    prod.Modelo_Ref AS Modelo,
     prod.StockActual,
     prod.StockMinimo,
     CASE 
@@ -83,7 +86,7 @@ GO
 -- --------------------------------------------------------------------------------------------------------------
 SELECT TOP 5 
     Categoria_Producto, 
-    SUM(Cantidad) AS Unidades_Vendidas,
+    FORMAT(SUM(Cantidad), 'N0', 'es-MX') AS Unidades_Vendidas,
     FORMAT(SUM(Subtotal), 'C', 'es-MX') AS Ingreso_Total
 FROM Analytics.vw_ReporteGlobalVentas
 WHERE UPPER(Estatus_Actual) NOT LIKE '%Cancelado%' -- Filtro de integridad forzamos mayúsculas para comparar.
