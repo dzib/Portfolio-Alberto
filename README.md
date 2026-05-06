@@ -6,7 +6,7 @@
 ![Power BI](https://img.shields.io/badge/PowerBI-Dashboard-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-> 📖 ¡Bienvenido a mi portafolio!  
+> 📖 ¡Bienvenido a mi portafolio!
 > Ingeniero de Soluciones de Datos especializado en arquitecturas híbridas. Diseño pipelines que procesan **50,000 registros en menos de 2 segundos**, con rigor transaccional y escalabilidad empresarial.
 
 ---
@@ -21,6 +21,7 @@
 ---
 
 ## 🎯 Objetivos del portafolio
+
 * Con cada proyecto se busca simular un entorno de negocio distinto.
 
 - 🗂️ **Modelado de datos* y Tablas jerárquicas normalizadas*: diseño de esquemas relacionales con integridad referencial y reglas de negocio.
@@ -31,24 +32,26 @@
 ---
 
 ## 💻 Stack Tecnológico
+
 En este portafolio se buscó aplicar un rigor de ingeniería en cada línea de código:
 
 - **Motores:** SQL Server 2025 | SSMS 22.
 - **Lenguajes:** T-SQL Avanzado y Python 3.13 (Pandas, SQLAlchemy).
-- **Metodología de Calidad:** 
+- **Metodología de Calidad:**
   - **Idempotencia:** Scripts re‑ejecutables sin duplicidad de datos.
   - **Integridad:** Uso de Transacciones (`COMMIT`/`ROLLBACK`) y bloques `TRY/CATCH`.
   - **Performance:** Monitoreo de tiempos de ejecución en milisegundos para procesos masivos.
   - **Git Flow:** Gestión de ramas (`Feature` -> `Develop` -> `Main`) y `SemVer`.
 
-###  Matriz de Competencias Técnicas (Key Skills)
+### Matriz de Competencias Técnicas (Key Skills)
 
-| **Tecnología**  | **Badges**                                                                                                                | **Especialidad y Dominio**                                                                               |
-|:---------------:|:-------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------:|
-| SQL Server      |![SQL](https://learn.microsoft.com/en-us/training/achievements/configure-sql-server-resources-for-optimal-performance.svg) | Diseño de esquemas relacionales, Window Functions, T-SQL dinámico y optimización de índices.             |
-| Python          |![Python](https://img.icons8.com/?size=128&id=OhhCHl3xDHfn&format=png)                                                     | Orquestación de pipelines, manipulación de grandes volúmenes de datos y automatización de procesos ETL.  |
-| Data Viz        |![Dashboard](https://img.icons8.com/?size=160&id=wWncQUpoODJf&format=png)                                                  |  Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.         |
-| Infraestructura |![Tropy](https://learn.microsoft.com/en-us/training/achievements/understand-data-concepts.svg)                             | Gestión de versiones, automatización de servicios de SO y configuración de entornos de alto rendimiento. |
+|   Tecnología   |                                                          Badges                                                          |                                           Especialidad y Dominio                                           |
+| :-------------: | :----------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+|   SQL Server   | ![SQL](https://learn.microsoft.com/en-us/training/achievements/configure-sql-server-resources-for-optimal-performance.svg) |         Arquitecturas de alto rendimiento,**Single-Pass Processing** , y normalización 1NF.         |
+|     Python     |                           ![Python](https://img.icons8.com/?size=128&id=OhhCHl3xDHfn&format=png)                           | Orquestación de pipelines, manipulación de grandes volúmenes de datos y automatización de procesos ETL. |
+|    Data Viz    |                         ![Dashboard](https://img.icons8.com/?size=160&id=wWncQUpoODJf&format=png)                         |     Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.     |
+|  Data Quality  |                         ![Data Quality](https://cdn-icons-png.flaticon.com/512/10179/10179085.png)                         |     **Data Cleansing** avanzado: corrección de acentos, capitalización y atomicidad semántica.     |
+| Infraestructura |               ![Tropy](https://learn.microsoft.com/en-us/training/achievements/understand-data-concepts.svg)               | Gestión de versiones, automatización de servicios de SO y configuración de entornos de alto rendimiento. |
 
 ---
 
@@ -64,17 +67,19 @@ graph LR
 ```
 
 ---
+
 ## 📊 Métricas de Impacto y Performance (Hito v3.0)
 
 > *Benchmarks ejecutados en entorno local optimizado (SSD Expansion & Write Caching).*
 
-| **Categoría**            | **Métrica**              | **Benchmark**                 | **Proyecto Clave** | **Estado** |
-|:------------------------:|:------------------------:|:-----------------------------:|:------------------:|:----------:|
-| **Ingesta Masiva**       | Velocidad de Carga       | **23.8k reg/seg** (180k tot.) | P4_SupplyChain     | 🚀         |
-| **Transformación (ETL)** | Limpieza y Normalización | **644 ms** (Fase 4.4)         | P4_SupplyChain     | ✅         |
-| **Analítica de Negocio** | Dashboard Interactivo    | Latencia Cero                 | PyGWalker          | 📊         |
-| **Arquitectura**         | Integridad Transaccional | **100%** Atomicidad           | TRY/CATCH          | 🛡️         |
-
+|      **Categoría**      |    **Métrica**    |         **Benchmark**         | **Proyecto Clave** | **Estado** |
+| :-----------------------------: | :-----------------------: | :---------------------------------: | :----------------------: | :--------------: |
+|  **Optimización T-SQL**  |    Velocidad de Carga    | **309 ms** (2.3k+ registros) | **P1_Inventario** |        🚀        |
+|    **Normalización**    |     Limpieza Atómica     |      **Single-Pass ETL**      | **P1_Inventario** |        📦        |
+|    **Ingesta Masiva**    |    Velocidad de Carga    | **23.8k reg/seg** (180k tot.) | **P4_SupplyChain** |        ⚡        |
+| **Transformación (ETL)** | Limpieza y Normalización |     **644 ms** (Fase 4.4)     | **P4_SupplyChain** |        ✅        |
+| **Analítica de Negocio** |   Dashboard Interactivo   |            Latencia Cero            |   **PyGWalker**   |        📈        |
+|     **Arquitectura**     | Integridad Transaccional |      **100%** Atomicidad      |   **TRY/CATCH**   |       🛡️       |
 
 ---
 
@@ -87,7 +92,6 @@ El repositorio está organizado por proyectos independientes, cada uno con su pr
 - `📂 P3_Retail_Ventas`: Pipeline híbrido (Python + SQL) y procesamiento de Big Data.
 - `📂 P4_Real_Word_Ingestion`: Soluciones con enfoque en Cadenas de Suministro y Eficiencia Logística.
 - `📝 README Y DOCUMENTACIÓN :` Documentación por proyecto de sus estándares y "Lineamientos de Estructura" aplicados.
-
 
 ```text
 SQL_Portafolio/
@@ -161,18 +165,34 @@ SQL_Portafolio/
 - **ETL:** Transformación de strings complejos en datos tipados (`DATETIME2`, `DECIMAL`).
 - **Key Skills:** Window Functions (RANK), Idempotencia (`RESEED`), Constraints Nominados.
 
-### 📦 [P1] Control de Inventarios (v1.0.0)
+### 📦 [P1] Control de Inventarios (v2.0 - Retrofitting)
 
-*Fundamentos de bases de datos y gestión de stock.*
+*De Fundamentos Relacionales a Pipeline para alta Eficiencia.*
 
-- **Lógica:** Implementación de CRUD básico y lógica de inventarios.
-- **Ejemplos:** De limpieza de datos (ETL) y reportes ejecutivos.
-- **Key Skills:** PK/FK, Joins básicos, Relaciones 1:N.
+- **Ingeniería:** Evolución de un modelo base a un sistema con **Data Grooming** automatizado.
+- **Lineamientos ETL :** Implementación de **Single-Pass Processing** que extrae, limpia y capitaliza datos legacy en una sola transacción.
+- **BI Operativo:** Dashboard en Excel conectado vía **ODBC Driver 17** con semaforización logística (Stock Mínimo).
+- **Key Skills:** PK/FK,  **Resiliencia ante Fallos** , Normalización Atómica, Integridad Semántica.
+
+#### 💎 El Valor de la Ingeniería: Transformación de Datos (ETL)
+
+*Simulación de migración de un sistema Legacy con datos no atómicos a una arquitectura optimizada para BI.*
+
+|      Dimensión      |   Estado Legacy (Origen)   |                        Estado Optimizado                        |
+| :------------------: | :-------------------------: | :-------------------------------------------------------------: |
+| **Atomicidad** |     `Prod_Ref_3 \| V3`     |  **Nombre:** `Prod_Ref_3` \| **Modelo:** `V3`  |
+| **Geografía** |     `queretaro \| QRO`     |           `Querétaro` (Capitalización y Acentos)           |
+|  **Estatus**  |   `PAGADO \| COMPLETADO`   |              `Pagado` (Unificación Semántica)              |
+| **Ubicación** | `Sucursal Norte \| Merida` | **Sucursal:** `Norte` \| **Región:** `Mérida` |
+
+> **Impacto:** Esta normalización eliminó el 100% de los registros duplicados en los reportes de ventas y redujo el tiempo de procesamiento de limpieza a **309ms**.
 
 ---
 
 ## 🌐 Estándares aplicados
+
 En cada proyecto aplico rigor de ingeniería para asegurar código de nivel empresarial:
+
 1. **Idempotencia:** Scripts capaces de ejecutarse múltiples veces sin corromper datos mediante `DROP IF EXISTS` y `DBCC CHECKIDENT`.
 2. **Seguridad Transaccional:** Garantía de integridad mediante bloques `TRY/CATCH` y `ROLLBACK` ante fallos críticos.
 3. **Métricas de Performance:** Optimización I/O, documentación obligatoria de tiempos de ejecución y carga de CPU.
@@ -189,6 +209,7 @@ A lo largo del portafolio, se han documentado y resuelto desafíos críticos de 
 - **Gestión de Metadatos y SQL Dinámico:** Resolución de conflictos de compilación al modificar esquemas en tiempo real (DDL/DML) mediante el uso de `sp_executesql` y manejo de lotes de ejecución.
 - **Integridad de Datos en Pipelines Híbridos:** Gestión de valores `NULL` y colisiones de tipos de datos tras la migración de archivos crudos (CSV/Excel) hacia motores relacionales.
 - **Higiene y Salud del Ecosistema:** Control manual de servicios de base de datos (`sqlon/sqloff`) y configuración de entornos aislados (`.venv`) para garantizar la portabilidad y el rendimiento.
+- **Recuperación Crítica y Resiliencia (Recovery & Reset):** Gestión exitosa de un fallo total del entorno de desarrollo. Reconstrucción del ecosistema (SQL Server 2025, Drivers ODBC, Python Venv), logrando una mejora del **80% en el performance** del pipeline tras la reinstalación.
 
 ---
 
@@ -199,9 +220,9 @@ Este portafolio está diseñado para ser auditable y reproducible:
 1. **Exploración por Proyectos:** Cada carpeta (`P1` a `P4`) contiene una secuencia numerada (01-05 o subcarpeta Scripts/) que representa el ciclo de vida del pipeline.
 2. **Documentación de Proyecto:** Cada subcarpeta incluye su propio `README.md` detallando métricas de performance específicas y evidencias visuales (`/img`).
 3. **Requisitos de Entorno:**
-    - SQL Server 2025 | SSMS 22.
-    - Python 3.14 con librerías `pandas`, `sqlalchemy`, `pyodbc`, `pygwalker`.
-    - Driver ODBC 17 para SQL Server.
+   - SQL Server 2025 | SSMS 22.
+   - Python 3.14 con librerías `pandas`, `sqlalchemy`, `pyodbc`, `pygwalker`.
+   - Driver ODBC 17 para SQL Server.
 
 ---
 
@@ -220,13 +241,14 @@ Mi meta es la automatización total y la integración con la nube:
 
 **Ingeniero de Soluciones de Datos** con experiencia en ecosistemas corporativos de alto nivel (**SAP HANA, Salesforce, KoboToolbox**). Mi enfoque combina el rigor técnico del desarrollo de software con la visión estratégica de la logística y la cadena de suministro (AB InBev). Especializado en transformar datos crudos y desordenados en activos de información para la toma de decisiones.
 
+Experto en procesos de  **Retrofitting de Datos** , transformando sistemas legacy con inconsistencias en arquitecturas limpias y listas para Business Intelligence
+
 ---
 
-
 | **Contacto:**  [LinkedIn](https://www.linkedin.com/in/jesusalberto-dzib-ku/) | **✉️ dzibjesusalberto@gmail.com** |
-|:----------------------------------------------------------------------------:|:---------------------------------:|
-| **Autor:**  Jesús Alberto Dzib Ku                                            | **Licencia:** MIT © 2026          |
-|  *Ingeniería de Datos*                                                       | *SQL & Python Developer*          |
+| :-----------------------------------------------------------------------------: | :---------------------------------------: |
+|                    **Autor:**  Jesús Alberto Dzib Ku                    |      **Licencia:** MIT © 2026      |
+|                            *Ingeniería de Datos*                            |        *SQL & Python Developer*        |
 
 *🚧 En constante evolución.*
 
