@@ -1,0 +1,18 @@
+# Ignorar binarios y datos
+*.xls
+*.xlsx
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# Ignorar carpetas de imágenes en cada proyecto
+P1_Inventario/img
+P2_Escolar/img
+P3_Retail_Ventas/img
+P4_Real_World_Ingestion/img
+
+# Ignorar dependencias y builds
+node_modules
+dist
+build

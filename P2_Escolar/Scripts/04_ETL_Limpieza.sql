@@ -26,9 +26,9 @@ BEGIN TRY
     PRINT '🧹 Iniciando proceso ETL de Normalización y Persistencia...';
     PRINT '--------------------------------------------------------------------';
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 1. TRANSFORMACIÓN Y PERSISTENCIA FÍSICA (UPDATE ATÓMICO).
+--- -- 1. TRANSFORMACIÓN Y PERSISTENCIA FÍSICA SINGLE-PASS (UPDATE ATÓMICO).
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
-;WITH Posiciones AS (
+    ;WITH Posiciones AS (
         -- Localizamos los delimitadores una sola vez para eficiencia de CPU.
         SELECT 
             AlumnoID, MetaData_ETL, Nombre,
@@ -39,17 +39,17 @@ BEGIN TRY
     )
     UPDATE A
     SET 
-        -- Extracción y conversión de tipos en una sola pasada.
-        A.FechaIngreso      = CAST(TRIM(LEFT(P.MetaData_ETL, P.P1 - 1)) AS DATE),
-        
+        -- Extracción y conversión de tipos en una sola pasada. Blindaje contra errores de casting (Data Resiliencia).
+        A.FechaIngreso      = TRY_CAST(TRIM(LEFT(P.MetaData_ETL, P.P1 - 1)) AS DATE),
+        -- Estatus Académico: Ejemplo 'PAGADO | OK' -> 'Pagado'
         A.EstatusAcademico  = UPPER(LEFT(TRIM(SUBSTRING(P.MetaData_ETL, P.P1 + 1, P.P2 - P.P1 - 1)), 1)) + 
                                 LOWER(SUBSTRING(TRIM(SUBSTRING(P.MetaData_ETL, P.P1 + 1, P.P2 - P.P1 - 1)), 2, 50)),
         
-        A.PromedioHistorico = CAST(TRIM(SUBSTRING(P.MetaData_ETL, P.P2 + 1, 10)) AS DECIMAL(4,2)),
+        A.PromedioHistorico = TRY_CAST(TRIM(SUBSTRING(P.MetaData_ETL, P.P2 + 1, 10)) AS DECIMAL(4,2)),
         
-        -- Data Grooming: Limpieza de Nombre y Formato Título (Solo si existe el delimitador).
-        A.Nombre = CASE 
-                    WHEN A.Nombre LIKE '%|%' THEN 
+        -- Data Grooming con STUFF/CHARINDEX para nombres limpios (Standard).
+        A.Nombre = CASE
+                    WHEN A.Nombre LIKE '%|%' THEN
                         UPPER(LEFT(TRIM(LEFT(A.Nombre, CHARINDEX('|', A.Nombre) - 1)), 1)) + 
                         LOWER(SUBSTRING(TRIM(LEFT(A.Nombre, CHARINDEX('|', A.Nombre) - 1)), 2, 150))
                     ELSE 
@@ -66,25 +66,30 @@ BEGIN TRY
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
     IF OBJECT_ID('Operaciones.VW_Alumnos_Normalizados', 'V') IS NOT NULL
         DROP VIEW Operaciones.VW_Alumnos_Normalizados;
-    
+    -- La vista une Alumnos, Carreras y Departamentos (Facultades)
     EXEC('
         CREATE VIEW Operaciones.VW_Alumnos_Normalizados AS
         SELECT 
-            AlumnoID, 
-            Nombre, 
-            FechaIngreso, 
-            EstatusAcademico, 
-            PromedioHistorico
-        FROM Catalogos.Alumnos
+            A.AlumnoID, 
+            A.Nombre, 
+            C.NombreCarrera AS Carrera,
+            D.Nombre AS Facultad,
+            A.FechaIngreso, 
+            A.EstatusAcademico, 
+            A.PromedioHistorico,
+            YEAR(A.FechaIngreso) AS Generacion
+        FROM Catalogos.Alumnos A
+        INNER JOIN Catalogos.Carreras C ON A.CarreraID = c.CarreraID
+        INNER JOIN Catalogos.Departamentos D ON C.DeptoID = D.DeptoID
     ');
 
     COMMIT TRANSACTION;
 --- -- -----------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 3. MÉTRICAS DE ÉXITO.
 --- -- -----------------------------------------------------------------------------------------------------------------------------------------------------
-    PRINT '=====================================================';
-    PRINT '     ✅ PROCESO ETL P2 COMPLETADO CON ÉXITO';
-    PRINT '=====================================================';
+    PRINT '======================================================================';
+    PRINT ' ✅ PROCESO DE PERCISTENCIA FÍSICA Y ETL P2 COMPLETADO CON ÉXITO';
+    PRINT '======================================================================';
     PRINT '📋 Registros Normalizados: ' + FORMAT(@Normalizados, 'N0');
     PRINT '⏱️  Tiempo de ejecución:    ' + FORMAT(DATEDIFF(MS, @StartTime, SYSUTCDATETIME()), 'N0') + ' ms';
     PRINT '📅 Finalizado el:          ' + CAST(SYSDATETIME() AS VARCHAR);

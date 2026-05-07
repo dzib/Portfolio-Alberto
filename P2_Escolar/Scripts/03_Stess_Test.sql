@@ -3,7 +3,7 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE: 3 -  Stress Test & Data Quality Shield
 AUTOR: Alberto Dzib
-VERSIÓN: 2.0 (Enterprise Load Simulation)
+VERSIÓN: 2.2 (Enterprise Load Simulation)
 DESCRIPCIÓN: 
     - Inserción masiva de 1,000 alumnos usando bucle WHILE.
     - Implementación de transacciones para asegurar la integridad.
@@ -36,9 +36,9 @@ BEGIN TRY
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
     DELETE FROM Operaciones.Asistencias;
     DELETE FROM Operaciones.Inscripciones;
-    DELETE FROM Operaciones.Calificaciones;
+    DELETE FROM Operaciones.Calificaciones; -- Borrar detalle primero por FK
     DELETE FROM Catalogos.Alumnos;
-    DBCC CHECKIDENT ('Catalogos.Alumnos', RESEED, 0);
+    DBCC CHECKIDENT ('Catalogos.Alumnos', RESEED, 0) WITH NO_INFOMSGS; -- Para que en la consola se vea limpia.
 
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 2. POBLADO DE DEPARTAMENTOS Y PROFESORES.
@@ -84,17 +84,20 @@ BEGIN TRY
         DECLARE @NombreBase NVARCHAR(50) = ISNULL(CHOOSE(FLOOR(RAND()*3)+1,'Estudiante', 'Alumno', 'Candidato'),'User');
         DECLARE @EstatusBase NVARCHAR(20) = ISNULL(CHOOSE(FLOOR(RAND()*3)+1,'ACTIVO', 'REGULAR', 'BAJA_TEMP'), 'PENDIENTE');
         DECLARE @NotaRandom DECIMAL(4,2) = ISNULL(CAST(RAND()*29.99 + 70 AS DECIMAL(4,2)), 70.00); -- Forzado para no exeda 99.99
+        DECLARE @CarreraRandom  INT = FLOOR(RAND()* 4) + 1; -- Asignación aleatoria de Departamento (1-4) para evitar ruptura de FK.
 
-        INSERT INTO Catalogos.Alumnos (Nombre, Email, FechaNacimiento, MetaData_ETL)
+        INSERT INTO Catalogos.Alumnos (Nombre, Email, FechaNacimiento, MetaData_ETL, CarreraID)
         VALUES (
             @NombreBase + '_ID_' + CAST(@Contador AS VARCHAR(10)),
             LOWER(@NombreBase) + CAST(@Contador AS VARCHAR(10)) + '@escolar.edu',
             DATEADD(DAY, -FLOOR(RAND()*365*20), GETDATE()), -- Para optener un rango de edades amplio.
             -- Metadata Legacy con variaciónes de espacio correción con el ETL.
-            CAST(CAST(DATEADD(DAY, -FLOOR(RAND()*500), GETDATE()) AS DATE) AS VARCHAR(10)) + ' | ' + @EstatusBase + ' | ' + CAST(@NotaRandom AS VARCHAR(5))
+            CAST(CAST(DATEADD(DAY, -FLOOR(RAND()*500), GETDATE()) AS DATE) AS VARCHAR(10)) + ' | ' + @EstatusBase + ' | ' + CAST(@NotaRandom AS VARCHAR(5)),
+            @CarreraRandom
         );
         SET @Contador += 1;
     END
+
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 5. INSCRIPCIONES MASIVAS.
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------

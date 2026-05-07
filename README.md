@@ -62,7 +62,9 @@ graph LR
     A[Fuentes: CSV/Kaggle/Faker] -- Python Ingestion --> B[(SQL Server 2025)]
     B -- T-SQL ETL --> C{Data Warehouse}
     C -- SQL Views --> D[Power BI / PyGWalker]
+    style A fill:#34A853,color:#fff
     style B fill:#0078D4,color:#fff
+    style C fill:#FF6D00,color:#fff
     style D fill:#F2C811,color:#000
 ```
 
@@ -87,6 +89,10 @@ graph LR
 
 El repositorio está organizado por proyectos independientes, cada uno con su propio ciclo de vida (DDL, DML, ETL y BI):
 
+Este portafolio está diseñado para ser reproducible y mantener un estilo consistente en todo el código y documentación. 
+
+Se incluyen archivos de configuración clave: `.prettierrc`, `.prettierignore`, `.editorconfig`y `.gitignore`.
+
 - `📂 P1_Inventario`: Gestión de stock y fundamentos relacionales.
 - `📂 P2_Escolar`: Arquitectura avanzada, esquemas segregados y limpieza con CTEs.
 - `📂 P3_Retail_Ventas`: Pipeline híbrido (Python + SQL) y procesamiento de Big Data.
@@ -95,28 +101,92 @@ El repositorio está organizado por proyectos independientes, cada uno con su pr
 
 ```text
 SQL_Portafolio/
-├── 📂 P1_Inventario/           # Gestión de Stock y Fundamentos Relacionales (SQL Puro)
-│   ├── Scripts/                # Pipeline 01-05 (SQL Puro)
+├── 📂 P1_Inventario/              # Gestión de Stock y Fundamentos Relacionales
+│   ├── Scripts/                   # Pipeline SQL (01-05)
+│   ├── img/                       # Evidencias gráficas
 │   └── Documentacion.md
-├── 📂 P2_Escolar/              # Arquitectura Avanzada y ETL con Window Functions
-│   ├── Scripts/                # Pipeline 01-05 (SQL Pro)
-│   ├── img/                    # Evidencias de Ranking y Métricas
+├── 📂 P2_Escolar/                 # Arquitectura Avanzada y ETL con CTEs
+│   ├── Scripts/                   # Pipeline SQL (01-05)
+│   ├── img/                       # Evidencias de métricas
 │   └── Documentacion.md
-├── 📂 P3_Retail_Ventas/        # Pipeline Híbrido Big Data (Python + SQL sintético)
-│   ├── Scripts/                # Scripts .py y .sql (Orquestación Híbrida)
-│   ├── Datos/                  # Datasets generados (50,000 registros)
-│   ├── img/                    # Dashboards de Analítica
+├── 📂 P3_Retail_Ventas/           # Pipeline Híbrido Big Data (Python + SQL)
+│   ├── Scripts/                   # Scripts .py y .sql
+│   ├── Datos/                     # Datasets generados (50k registros)
+│   ├── img/                       # Dashboards de Analítica
 │   └── Documentacion.md
-├── 📂 P4_Global_SupplyChain/   # HITO ORO: Ingesta Real Kaggle + Dashboard Interactivo
-│   ├── 01_Setup_DDL/           # Esquemas y constraints de alta precisión
-│   ├── 02_Ingesta_Pro/         # Orquestación Python (23.8k reg/seg)
-│   ├── 03_Orquestacion_Trans/  # Lógica atómica y manejo de TRY/CATCH
-│   ├── 04_ETL_Cleaning/        # Normalización y detección de anomalías
-│   ├── 05_BI_Observabilidad/   # Vistas SQL y Dashboard PyGWalker
-│   ├── img/                    # Evidencias de performance y BI
+├── 📂 P4_Real_World_Ingestion/    # Supply Chain & Observabilidad
+│   ├── 01_Setup_DDL/              # Esquemas y constraints
+│   ├── 02_Ingesta_Pro/            # Orquestación Python (23.8k reg/seg)
+│   ├── 03_Orquestacion_Trans/     # Lógica transaccional TRY/CATCH
+│   ├── 04_ETL_Cleaning/           # Normalización y detección de anomalías
+│   ├── 05_BI_Observabilidad/      # Vistas SQL y Dashboard PyGWalker
+│   ├── img/                       # Evidencias de performance y BI
 │   └── Documentacion.md
-└── 📄 README.md                # Documentación Maestra del Portafolio
+├── 📄 README.md                   # Documentación maestra del portafolio
+├── 📄 .prettierrc                  # Reglas de estilo de código (JSON)
+├── 📄 .prettierignore              # Archivos ignorados por Prettier
+├── 📄 .editorconfig                # Reglas universales de indentación y formato
+└── 📄 .gitignore                   # Archivos ignorados por Git
 ```
+
+
+### 📊 Diagrama de Estructura del Portafolio
+
+
+``````mermaid
+graph LR
+    A[SQL_Portafolio]
+
+    A --> B[P1_Inventario]
+    A --> C[P2_Escolar]
+    A --> D[P3_Retail_Ventas]
+    A --> E[P4_Real_World_Ingestion]
+
+    B --> B1[Scripts]
+    B --> B2[img]
+    B --> B3[Documentacion.md]
+
+    C --> C1[Scripts]
+    C --> C2[img]
+    C --> C3[Documentacion.md]
+
+    D --> D1[Scripts]
+    D --> D2[Datos]
+    D --> D3[img]
+    D --> D4[Documentacion.md]
+
+    E --> E1[01_Setup_DDL]
+    E --> E2[02_Ingesta_Pro]
+    E --> E3[03_Orquestacion_Transacciones]
+    E --> E4[04_ETL_Cleaning]
+    E --> E5[05_BI_Observabilidad]
+    E --> E6[img]
+    E --> E7[Documentacion.md]
+
+    A --> F[README.md]
+    A --> G[.prettierrc]
+    A --> H[.prettierignore]
+    A --> I[.editorconfig]
+    A --> J[.gitignore]
+
+    %% Estilos ejecutivos
+    style A fill:#004C99,color:#fff,stroke:#0078D4,stroke-width:2px
+
+    %% Degradado por proyectos
+    style B fill:#66A3FF,color:#000
+    style C fill:#66A3FF,color:#000
+    style D fill:#66A3FF,color:#000
+    style E fill:#66A3FF,color:#000
+
+    %% Archivos clave
+    style F fill:#0098D4,color:#fff
+    style G fill:#34A853,color:#fff
+    style H fill:#FF6D00,color:#fff
+    style I fill:#AB47BC,color:#fff
+    style J fill:#F2C811,color:#000
+``````
+
+
 
 ---
 

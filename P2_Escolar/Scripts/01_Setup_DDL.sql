@@ -3,7 +3,7 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE: 1.1 (SQL) - Arquitectura de Datos e Integridad Referencial
 AUTOR: Alberto Dzib
-VERSIÓN: 2.0 (Retrofitting)
+VERSIÓN: 2.1 (Retrofitting)
 DESCRIPCIÓN: 
     - Implementación de esquemas segmentados (Catalogos, Operaciones).
     - Preparación de columnas para normalización 1NF (Metadata_ETL).
@@ -69,9 +69,17 @@ BEGIN TRY
         IsActive BIT DEFAULT 1
     );
 
+    CREATE TABLE Catalogos.Carreras (
+        CarreraID INT IDENTITY(1,1) PRIMARY KEY,
+        NombreCarrera VARCHAR(100) NOT NULL,
+        DeptoID INT CONSTRAINT FK_Carreras_Deptos FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID)
+    ); -- Vinculamos la Carrera al Departamento (Facultad).
+
     CREATE TABLE Catalogos.Alumnos (
         AlumnoID INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(150) NOT NULL,
+        CarreraID INT CONSTRAINT FK_Alumnos_Carreras FOREIGN KEY REFERENCES Catalogos.Carreras(CarreraID),
+        DeptoID INT CONSTRAINT FK_Alumnos_Deptos FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID),
         Email NVARCHAR(100) CONSTRAINT UQ_Alu_Email UNIQUE,
         FechaNacimiento DATE,
         -- Columna Legacy para la Fase 4: FechaIngreso | Estatus | Promedio".

@@ -1,6 +1,9 @@
 ﻿################################################################################
-# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+# Archivo .gitignore adaptado para SQL_PORTAFOLIO
+# Basado en el generado por Visual Studio, con ajustes para proyectos mixtos.
 ################################################################################
+
+# Configuración de Visual 
 .vs/
 bin/
 obj/
@@ -13,23 +16,37 @@ test_python.py
 $RECYCLE.BIN/
 *.lnk
 
-# VS Code config de usuario
+# Archivos temporales de VS Code config de usuario
 .vscode/
+*.code-workspace
 .history/
 
-# Entornos virtuales
+# Entornos virtuales de Python
 .venv/
 .venv-1/
 env/
 venv/
 
-# Datos y Configuración
+# Configuración y datos sensibles
 .env
 **/data/
 **/*.csv
-*.xlsx
 *.parquet
 
 # Archivos de sistema
 .DS_Store
 Thumbs.db
+
+# Dependencias y builds
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+
+# Comentados para anexar las evidencias.
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif

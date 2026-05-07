@@ -1,14 +1,14 @@
 /* 
 ===========================================================================================================
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
-FASE: 5 - Reportes de Business Intelligence (BI)
+FASE: 5 - Reportes de Business Intelligence (ConsolaBI)
 AUTOR: Alberto Dzib
-VERSIÓN: 1.0
+VERSIÓN: 2.0 (Visual Advanced)
 DESCRIPCIÓN: 
     - Generación de KPIs de rendimiento académico.
     - Uso de Window Functions (RANK) para Cuadro de Honor.
     - Integración de la vista normalizada (ETL) con datos transaccionales.
- ===========================================================================================================
+============================================================================================================
 */
 
 USE P2_EscolarDB;
@@ -18,58 +18,75 @@ SET NOCOUNT ON; -- Suuprir el mensaje: "(1 filas afectadas)".
 DECLARE @StartTime DATETIME2 = SYSUTCDATETIME(); --Data Typing para métricas de tiempo.
 
 PRINT '--------------------------------------------------------------------';
-PRINT '📊 Generando Reportes de Inteligencia de Negocio...';
+PRINT '📊 GENERANDO DASHBOARD EJECUTIVO - DZIB ANALYTICS';
 PRINT '--------------------------------------------------------------------';
 
 BEGIN TRY
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 1. REPORTE: RENDIMIENTO POR CARRERA (KPI Agregado)
+--- -- 1. KPI VISUAL: RENDIMIENTO POR CARRERA CON BARRAS DE PROGRESO.
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
-    PRINT '=============================================================';
-    PRINT '>> Reporte 1: Promedios Generales por Carrera';
-    PRINT '=============================================================';
+    PRINT '==============================================================================';
+    PRINT CHAR(13) + '>> [REPORTE 01] RENDIMIENTO COMPARATIVO POR FACULTAD';
+    PRINT '==============================================================================';
     SELECT 
-        A.Carrera,
-        COUNT(DISTINCT A.IdAlumno) TotalAlumnos,
-        CAST(AVG(C.Nota) AS DECIMAL(5,2)) PromedioGeneral,
-        CAST(MIN(C.Nota) AS DECIMAL(5,2)) NotaMinima,
-        CAST(MAX(C.Nota) AS DECIMAL(5,2)) NotaMaxima
+        LEFT(D.Nombre, 25) AS Facultad,
+        COUNT(A.AlumnoID) AS [Población],
+        FORMAT(D.PresupuestoAnual, 'C', 'en-US') AS [Presupuesto],
+        CAST(AVG(A.PromedioHistorico) AS DECIMAL(4,2)) AS [Promedio],
+        -- FIX: Convertimos a INT el promedio para evitar NULL y dividimos entre 10 para llevar la escala de 100 a 10.
+        ISNULL(REPLICATE('>', CAST(AVG(A.PromedioHistorico)/10 AS INT)), '') + 
+        ISNULL(REPLICATE('-', ABS(10 - CAST(AVG(A.PromedioHistorico)/10 AS INT))), '') AS [Score_Visual]
     FROM Operaciones.VW_Alumnos_Normalizados A
-    JOIN Operaciones.Calificaciones C ON A.IdAlumno = C.IdAlumno
-    GROUP BY A.Carrera
-    ORDER BY PromedioGeneral DESC;
+    JOIN Catalogos.Carreras C ON A.Carrera = C.NombreCarrera
+    JOIN Catalogos.Departamentos D ON C.DeptoID = D.DeptoID
+    GROUP BY D.Nombre, D.PresupuestoAnual
+    ORDER BY [Promedio] DESC; -- Orden por éxito académico.
 
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 2. REPORTE: CUADRO DE HONOR (Aplicando Window Functions)
+--- -- 2. KPI VISUAL: SEMAFORIZACIÓN DE ESTATUS Y CUADRO DE HONOR.
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
-    PRINT '=============================================================';
-    PRINT CHAR(13) + '>> Reporte 2: Top 10 Alumnos (Ranking Global)';
-    PRINT '=============================================================';
     SELECT TOP 10
-        RANK() OVER (ORDER BY AVG(C.Nota) DESC) Posicion,
-        A.Nombre,
-        A.Carrera,
-        CAST(AVG(C.Nota) AS DECIMAL(5,2)) PromedioFinal
-    FROM Operaciones.VW_Alumnos_Normalizados A
-    JOIN Operaciones.Calificaciones C ON A.IdAlumno = C.IdAlumno
-    GROUP BY A.IdAlumno, A.Nombre, A.Carrera
-    ORDER BY PromedioFinal DESC;
+        DENSE_RANK() OVER (ORDER BY PromedioHistorico DESC) AS [Ranking],
+        UPPER(Nombre) AS [Alumno],
+        Carrera,
+        PromedioHistorico AS [Nota],
+        CASE 
+            WHEN PromedioHistorico >= 9.5 THEN '!!! EXCELENCIA'
+            WHEN PromedioHistorico >= 8.5 THEN '!! DESTACADO'
+            ELSE 'REGULAR'
+        END AS [Estatus_KPI]
+    FROM Operaciones.VW_Alumnos_Normalizados
+    ORDER BY PromedioHistorico DESC;
 
+--- -- -----------------------------------------------------------------------------------------
+--- -- 3. KPI DE SEGMENTACIÓN: SALUD ACADÉMICA GLOBAL.
+--- -- -----------------------------------------------------------------------------------------
+    PRINT CHAR(13) + '>> [REPORTE 03] DISTRIBUCIÓN DE ESTATUS Y PENETRACIÓN';
+    PRINT '--------------------------------------------------------------------------------';
+    SELECT 
+        EstatusAcademico,
+        COUNT(*) AS [Total],
+        CAST(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER() AS DECIMAL(5,2)) AS [%_Participación],
+        -- Gráfico de pay simple (representación visual)
+        REPLICATE('■', CAST((COUNT(*) * 20.0 / SUM(COUNT(*)) OVER()) AS INT)) AS [Distribucion]
+    FROM Operaciones.VW_Alumnos_Normalizados
+    GROUP BY EstatusAcademico
+    ORDER BY [%_Participación] DESC; -- De mayor a menor impacto.
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 3. MÉTRICAS DE CIERRE
+--- -- 5. MÉTRICAS DE CIERRE
 --- -- ------------------------------------------------------------------------------------------------------------------------------------------------
         PRINT '';
-    PRINT '=====================================================';
+    PRINT CHAR(13) +'=====================================================';
     PRINT '     ✅ Reportes BI Generados con Éxito';
-    PRINT '=====================================================';
+    PRINT CHAR(13) +'=====================================================';
     PRINT '⏱️ Tiempo de procesamiento: ' + FORMAT(DATEDIFF(MILLISECOND, @StartTime, SYSUTCDATETIME()), 'N0') + ' ms';
     PRINT '📅 Reporte generado el:     ' + CAST(SYSDATETIME() AS VARCHAR);
-    PRINT '=====================================================';
+    PRINT CHAR(13) +'=====================================================';
 
 END TRY
 BEGIN CATCH
 --- -- -------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 4. MANEJO DE ERRORES
+--- -- 6. MANEJO DE ERRORES
 --- -- -------------------------------------------------------------------------------------------------------------------------------------------------
     PRINT '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!';
     PRINT '❌ Ocurrió un error durante la generación del los reportes.';

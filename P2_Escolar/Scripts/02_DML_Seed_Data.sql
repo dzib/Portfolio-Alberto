@@ -3,7 +3,7 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE 2.1: Datos de Control - Seed Data (Data Cleansing Simulation)
 AUTOR: Alberto Dzib
-VERSIÓN: 2.0
+VERSIÓN: 2.1
 DESCRIPCIÓN: 
     - Inserción de catálogos base (Departamentos, Profesores, Cursos).
     - Carga de Alumnos con datos compuestos en 'MetaData_ETL' (Fecha | Estatus | Promedio).
@@ -61,20 +61,35 @@ BEGIN TRY
     END
 
 --- -- ---------------------------------------------------------------------------------------------------------
---- -- 4. POBLAR ALUMNOS (Dato Maestro con Metadata ETL).
+--- -- 4. RELACIÓN CARRERA-ALUMNOS.
 --- -- ---------------------------------------------------------------------------------------------------------
-    IF NOT EXISTS (SELECT 1 FROM Catalogos.Alumnos)
+    IF NOT EXISTS (SELECT 1 FROM Catalogos.Carreras)
     BEGIN
-        INSERT INTO Catalogos.Alumnos (Nombre, Email, FechaNacimiento, MetaData_ETL)
+        INSERT INTO Catalogos.Carreras (NombreCarrera, DeptoID)
         VALUES
-            ('Juan Carlos Luna | VIP', 'juan.luna@test.com', '2002-05-15', '2023-01-10 | Activo | 8.5'),
-            ('Sofia Reyes | Beca', 'sofia.reyes@test.com', '2001-11-20', '2022-08-15 | Regular | 9.2'),
-            ('Miguel Angel Sosa | Deporte', 'migue.sosa@test.com', '2003-02-10', '2023-01-10 | Condicional | 7.4');
-        PRINT '✅ Catálogo: Alumnos (Legacy Style) insertado.';
+            ('Ingeniería en Sistemas', 1), -- 1 = Facultad de Ingeniería
+            ('Cálculo Avanzado', 2),        -- 2 = Ciencias Exactas
+            ('Contaduría Pública', 3),     -- 3 = Administración
+            ('Derecho Penal', 4);          -- 4 = Humanidades
+        PRINT '✅ Catálogo: Carreras insertado.';
     END
 
 --- -- ---------------------------------------------------------------------------------------------------------
---- -- 5. RELACIÓN CURSOS-PROFESORES (Asignación Académica)..
+--- -- 5. POBLAR ALUMNOS (Dato Maestro con Metadata ETL).
+--- -- ---------------------------------------------------------------------------------------------------------
+    IF NOT EXISTS (SELECT 1 FROM Catalogos.Alumnos)
+    BEGIN
+        INSERT INTO Catalogos.Alumnos (Nombre, CarreraID, Email, FechaNacimiento, MetaData_ETL)
+        VALUES
+            ('Juan Carlos Luna | VIP', 1, 'juan.luna@test.com', '2002-05-15', '2023-01-10 | Activo | 8.5'),
+            ('Sofia Reyes | Beca', 2, 'sofia.reyes@test.com', '2001-11-20', '2022-08-15 | Regular | 9.2'),
+            ('Miguel Angel Sosa | Deporte', 3, 'migue.sosa@test.com', '2003-02-10', '2023-01-10 | Condicional | 7.4');
+        PRINT '✅ Catálogo: Alumnos (Legacy Style) insertado.';
+    END
+
+
+--- -- ---------------------------------------------------------------------------------------------------------
+--- -- 6. RELACIÓN CURSOS-PROFESORES (Asignación Académica)..
 --- -- ---------------------------------------------------------------------------------------------------------
     IF NOT EXISTS (SELECT 1 FROM Catalogos.CursosProfesores )  -- (Tabla Muchos a Muchos).
     BEGIN
@@ -87,7 +102,7 @@ BEGIN TRY
     END
 
 --- -- ---------------------------------------------------------------------------------------------------------
---- -- 6. OPERACIONES (Materias , Inscripciones y Calificaciones).
+--- -- 7. OPERACIONES (Materias , Inscripciones y Calificaciones).
 --- -- ---------------------------------------------------------------------------------------------------------
     IF NOT EXISTS (SELECT 1 FROM Operaciones.Materias) -- (Uniendo Alumnos con sus Materias/Cursos).
     BEGIN
@@ -117,7 +132,7 @@ BEGIN TRY
     END
 
 ---- -- ---------------------------------------------------------------------------------------------------------
---- -- 7. MÉTRICAS DE EJECUCIÓN.
+--- -- 8. MÉTRICAS DE EJECUCIÓN.
 --- -- ---------------------------------------------------------------------------------------------------------
     PRINT '=========================================================';
     PRINT '✅ Fase 2.1: Datos iniciales de P2 cargados con éxito.';
