@@ -1,4 +1,4 @@
-# 🚀 SQL & Data Engineering Portfolio - 👷 Alberto Dzib 📊
+# 🚀 End-to-End Data Engineering Portfolio - 👷 Alberto Dzib 📊
 
 ![Portafolio](https://img.shields.io/badge/github-repo-blue?logo=github)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-2025-blue)
@@ -129,9 +129,7 @@ SQL_Portafolio/
 └── 📄 .gitignore                   # Archivos ignorados por Git
 ```
 
-
 ### 📊 Diagrama de Estructura del Portafolio
-
 
 ``````mermaid
 graph LR
@@ -185,8 +183,6 @@ graph LR
     style I fill:#AB47BC,color:#fff
     style J fill:#F2C811,color:#000
 ``````
-
-
 
 ---
 
