@@ -1,13 +1,19 @@
 # 🚀 End-to-End Data Engineering Portfolio - 👷 Alberto Dzib 📊
 
+> *“Convirtiendo el caos en estructuras atómicas: Ingeniería de datos diseñada para el día a día”*
+
 ![Portafolio](https://img.shields.io/badge/github-repo-blue?logo=github)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-2025-blue)
 ![Python](https://img.shields.io/badge/Python-3.14-yellow)
 ![Power BI](https://img.shields.io/badge/PowerBI-Dashboard-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+> 👨‍💻 Perfil Profesional
+>
 > 📖 ¡Bienvenido a mi portafolio!
-> Ingeniero de Soluciones de Datos especializado en arquitecturas híbridas. Diseño pipelines que procesan **50,000 registros en menos de 2 segundos**, con rigor transaccional y escalabilidad empresarial.
+> **Ingeniero de Datos Híbrido** con enfoque en arquitecturas de alto rendimiento y resiliencia. Especialista en transformar entornos críticos y metadata desestructurada en ecosistemas de información atómica mediante el **Dzib Standard (V2.1.0).**
+
+**Core Stack:** `SQL Server 2025` | `Python 3.13` | `Git Flow` | `Excel BI (ODBC)`
 
 ---
 
@@ -76,7 +82,7 @@ graph LR
 
 |      **Categoría**      |    **Métrica**    |         **Benchmark**         | **Proyecto Clave** | **Estado** |
 | :-----------------------------: | :-----------------------: | :---------------------------------: | :----------------------: | :--------------: |
-|  **Optimización T-SQL**  |    Velocidad de Carga    | **309 ms** (2.3k+ registros) | **P1_Inventario** |        🚀        |
+|  **Optimización T-SQL**  |    Velocidad de Carga    |    **120 ms (5k+ registros)**    |   **P2_Escolar**   |        🚀        |
 |    **Normalización**    |     Limpieza Atómica     |      **Single-Pass ETL**      | **P1_Inventario** |        📦        |
 |    **Ingesta Masiva**    |    Velocidad de Carga    | **23.8k reg/seg** (180k tot.) | **P4_SupplyChain** |        ⚡        |
 | **Transformación (ETL)** | Limpieza y Normalización |     **644 ms** (Fase 4.4)     | **P4_SupplyChain** |        ✅        |
@@ -222,9 +228,9 @@ graph LR
 - **BI:** Reporte de analítica en consola con **Pandas**, logrando tiempos de respuesta de **0.53 s**.
 - **Key Skills:** Orquestación híbrida, Middleware ODBC, Optimización de I/O.
 
-### 🎓 [P2] Sistema de Gestión Académica (v2.1.0)
+### 🎓 [P2] Sistema de Gestión Académica (P2_Escolar / v2.1.0)
 
-*Arquitectura relacional robusta y procesos de limpieza profunda.*
+Ecosistema escolar resiliente con triple extracción y analítica presupuestaria.
 
 - **Estructura:** Diseño de esquemas segregados (`Catálogos`, `Operaciones`).
 - **Calidad:** Implementación de bloques **TRY/CATCH**, transacciones y manejo de desbordamientos decimales.
@@ -235,10 +241,12 @@ graph LR
 
 *De Fundamentos Relacionales a Pipeline para alta Eficiencia.*
 
-- **Ingeniería:** Evolución de un modelo base a un sistema con **Data Grooming** automatizado.
-- **Lineamientos ETL :** Implementación de **Single-Pass Processing** que extrae, limpia y capitaliza datos legacy en una sola transacción.
-- **BI Operativo:** Dashboard en Excel conectado vía **ODBC Driver 17** con semaforización logística (Stock Mínimo).
-- **Key Skills:** PK/FK,  **Resiliencia ante Fallos** , Normalización Atómica, Integridad Semántica.
+* **Resiliencia Atómica:** Capacidad de reconstrucción total del entorno tras fallos críticos, optimizando el performance en un  **80%** **.**
+* **ETL Senior:** Pipeline híbrido que procesa 1,000 registros en  **31ms** **, normalizando metadata sucia mediante CTEs y Single-Pass Processing.**
+* **Business Intelligence:** Dashboard ejecutivo con métricas de **Eficiencia de Inversión** (Rendimiento Académico vs. Presupuesto por Facultad).
+* **Stress Testing:** Simulación de carga masiva de 5,000 registros con blindaje proactivo contra nulos.
+
+---
 
 #### 💎 El Valor de la Ingeniería: Transformación de Datos (ETL)
 
@@ -274,7 +282,8 @@ A lo largo del portafolio, se han documentado y resuelto desafíos críticos de 
 - **Ingesta de Datos a Escala Industrial:** Superación de cuellos de botella en la red mediante el uso de `fast_executemany` y optimización de I/O en hardware, logrando el récord de **23.8k reg/seg**.
 - **Gestión de Metadatos y SQL Dinámico:** Resolución de conflictos de compilación al modificar esquemas en tiempo real (DDL/DML) mediante el uso de `sp_executesql` y manejo de lotes de ejecución.
 - **Integridad de Datos en Pipelines Híbridos:** Gestión de valores `NULL` y colisiones de tipos de datos tras la migración de archivos crudos (CSV/Excel) hacia motores relacionales.
-- **Higiene y Salud del Ecosistema:** Control manual de servicios de base de datos (`sqlon/sqloff`) y configuración de entornos aislados (`.venv`) para garantizar la portabilidad y el rendimiento.
+- **Git Flow:** Estrategia de branching profesional (`feature` ➔ `develop` ➔ `main`).
+- **Higiene y Salud del Ecosistema:** Control manual de servicios de base de datos (`sqlon/sqloff`) y configuración de entornos aislados (`.venv`) para garantizar la portabilidad y el rendimiento. Uso mandatorio de `TRY...CATCH`, `ROLLBACK` y SARGability para eficiencia de CPU.
 - **Recuperación Crítica y Resiliencia (Recovery & Reset):** Gestión exitosa de un fallo total del entorno de desarrollo. Reconstrucción del ecosistema (SQL Server 2025, Drivers ODBC, Python Venv), logrando una mejora del **80% en el performance** del pipeline tras la reinstalación.
 
 ---
@@ -311,11 +320,22 @@ Experto en procesos de  **Retrofitting de Datos** , transformando sistemas legac
 
 ---
 
-| **Contacto:**  [LinkedIn](https://www.linkedin.com/in/jesusalberto-dzib-ku/) | **✉️ dzibjesusalberto@gmail.com** |
-| :-----------------------------------------------------------------------------: | :---------------------------------------: |
-|                    **Autor:**  Jesús Alberto Dzib Ku                    |      **Licencia:** MIT © 2026      |
-|                            *Ingeniería de Datos*                            |        *SQL & Python Developer*        |
+📬 Conectemos
 
-*🚧 En constante evolución.*
+¿Tienes un reto de datos o buscas optimizar tus pipelines? Estoy listo para colaborar.
+
+| [LinkedIn](https://www.linkedin.com/in/jesusalberto-dzib-ku/) | **[✉️ Email](dzibjesusalberto@gmail.com)** | **Portafolio Web** |
+| ---------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
+
+---
+
+**Autor:** **Jesús Alberto Dzib Ku**
+*Ingeniero de Datos | SQL & Python Developer*
+⚖️ **Licencia MIT** © 2025-2026
+
+*“Construyendo sistemas que no solo procesan datos, sino que cuentan historias.”*
+**#TheDzibStandard #DataEngineering #V2.1.0**
+
+🚧 En constante evolución.
 
 ---
