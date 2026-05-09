@@ -283,7 +283,7 @@ BEGIN TRY
 
 END TRY
 BEGIN CATCH
-    ROLLBACK;
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
 
     PRINT '';
     PRINT '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!';
