@@ -3,7 +3,7 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE: 1.1 (SQL) - Arquitectura de Datos e Integridad Referencial
 AUTOR: Alberto Dzib
-VERSIÓN: 2.1 (Retrofitting)
+VERSIÓN: 2.2 (Retrofitting)
 DESCRIPCIÓN: 
     - Implementación de esquemas segmentados (Catalogos, Operaciones).
     - Preparación de columnas para normalización 1NF (Metadata_ETL).
@@ -19,7 +19,7 @@ DESCRIPCIÓN:
 USE master;
 GO
 
-SET NOCOUNT ON; -- Suuprir el mensaje: "(1 filas afectadas)".
+SET NOCOUNT ON; -- Suprime el mensaje: "(1 filas afectadas)".
 
 IF EXISTS (SELECT * FROM sys.databases WHERE name = 'P2_EscolarDB')
 BEGIN
@@ -115,7 +115,7 @@ BEGIN TRY
     CREATE TABLE Operaciones.Materias (
         MateriaID INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(100) NOT NULL,
-        Creditos INT CONSTRAINT CHK_Creditos CHECK (Creditos > 0),
+        Creditos INT CONSTRAINT CHK_Creditos CHECK (Creditos >= 0),
         ProfesorID INT CONSTRAINT FK_Mat_Prof FOREIGN KEY REFERENCES Catalogos.Profesores(ProfesorID)
     );
 
@@ -124,7 +124,9 @@ BEGIN TRY
         AlumnoID INT CONSTRAINT FK_Ins_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
         MateriaID INT CONSTRAINT FK_Ins_Mat FOREIGN KEY REFERENCES Operaciones.Materias(MateriaID),
         CicloEscolar NVARCHAR(20),
-        NotaFinal DECIMAL(5,2) CONSTRAINT CHK_NotaRange CHECK (NotaFinal BETWEEN 0 AND 100)
+        NotaFinal DECIMAL(5,2) CONSTRAINT CHK_NotaRange CHECK (NotaFinal BETWEEN 0 AND 100),
+        CursoID INT NULL
+        CONSTRAINT FK_Ins_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID)
     );
 
     CREATE TABLE Operaciones.Asistencias (
@@ -134,13 +136,15 @@ BEGIN TRY
         Presente BIT DEFAULT 1
     );
 
-
-    CREATE TABLE Operaciones.Calificaciones (
+    -- Calificaciones registros por parcial (p. ej. Parcial 1, Parcial 2).
+    CREATE TABLE Operaciones.Calificaciones ( 
         CalificacionID INT PRIMARY KEY IDENTITY(1,1),
+        InscripcionID INT CONSTRAINT FK_Ins_Cal FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
+        ParcialNumero INT CONSTRAINT CHK_Parcial CHECK (ParcialNumero BETWEEN 1 AND 3),
         AlumnoID INT CONSTRAINT FK_Cal_Alumnos FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
         CursoID INT CONSTRAINT FK_Cal_Cursos FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
         Nota DECIMAL(5,2) CONSTRAINT CK_Nota CHECK (Nota BETWEEN 0 AND 100),
-        FechaEvaluacion DATETIME2 DEFAULT SYSUTCDATETIME()
+        FechaAplicacion DATETIME2 DEFAULT SYSUTCDATETIME()
     );
 
 
