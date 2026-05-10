@@ -125,13 +125,14 @@ BEGIN TRY
         MateriaID INT CONSTRAINT FK_Ins_Mat FOREIGN KEY REFERENCES Operaciones.Materias(MateriaID),
         CicloEscolar NVARCHAR(20),
         NotaFinal DECIMAL(5,2) CONSTRAINT CHK_NotaRange CHECK (NotaFinal BETWEEN 0 AND 100),
-        CursoID INT NULL
-        CONSTRAINT FK_Ins_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID)
+        CursoID INT CONSTRAINT FK_Ins_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID)
     );
 
     CREATE TABLE Operaciones.Asistencias (
         AsistenciaID INT PRIMARY KEY IDENTITY(1,1),
         InscripcionID INT CONSTRAINT FK_Asis_Ins FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
+        AlumnoID INT CONSTRAINT FK_Asis_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
+        CursoID INT CONSTRAINT FK_Asis_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
         FechaAsistencia DATE DEFAULT CAST(GETDATE() AS DATE),
         Presente BIT DEFAULT 1
     );
@@ -146,7 +147,6 @@ BEGIN TRY
         Nota DECIMAL(5,2) CONSTRAINT CK_Nota CHECK (Nota BETWEEN 0 AND 100),
         FechaAplicacion DATETIME2 DEFAULT SYSUTCDATETIME()
     );
-
 
 --- -- ---------------------------------------------------------------------------------------------------------
 --- -- 5. LOG DE EJECUCIÓN Y CIERRE DE BLOQUE

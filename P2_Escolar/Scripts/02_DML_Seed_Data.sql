@@ -39,21 +39,6 @@ BEGIN TRY
     END;
 
 --- -- ---------------------------------------------------------------------------------------------------------
---- -- Control: Asegurar que Inscripciones tenga CursoID (necesario para FK en Calificaciones).
---- -- ---------------------------------------------------------------------------------------------------------
-    IF NOT EXISTS (
-        SELECT 1 FROM sys.columns
-        WHERE object_id = OBJECT_ID('Operaciones.Inscripciones') AND name = 'CursoID'
-    )
-    BEGIN
-        ALTER TABLE Operaciones.Inscripciones
-        ADD CursoID INT NULL;
-
-        ALTER TABLE Operaciones.Inscripciones
-        ADD CONSTRAINT FK_Ins_Curso FOREIGN KEY (CursoID) REFERENCES Catalogos.Cursos(CursoID);
-    END;
-    
---- -- ---------------------------------------------------------------------------------------------------------
 --- -- 1. POBLAR DEPARTAMENTOS.
 --- -- ---------------------------------------------------------------------------------------------------------
         IF NOT EXISTS (SELECT 1
@@ -136,12 +121,12 @@ BEGIN TRY
     FROM Catalogos.Alumnos)
         BEGIN
         INSERT INTO Catalogos.Alumnos
-            (Nombre, CarreraID, Email, FechaNacimiento, MetaData_ETL)
+            (Nombre, CarreraID, DeptoID, Email, FechaNacimiento, MetaData_ETL)
         VALUES
-            ('Juan Carlos Luna | VIP', 1, 'juan.luna@test.com', '2002-05-15', '2025-01-10 | Regular | 8.5'),
-            ('Sofia Reyes | Beca', 2, 'sofia.reyes@test.com', '2001-11-20', '2023-08-15 | Regular | 9.2'),
-            ('Andrea Diaz | Beca', 3, 'andrea.diaz@test.com', '2000-01-20', '2024-06-10 | Irregular | 7.8'),
-            ('Miguel Angel Sosa | Deporte', 4, 'migue.sosa@test.com', '2003-02-10', '2025-01-10 | Condicionado | 7.4');
+            ('Juan Carlos Luna | VIP', 1, 1, 'juan.luna@test.com', '2002-05-15', '2025-01-10 | Regular | 8.5'),
+            ('Sofia Reyes | Beca', 4, 2, 'sofia.reyes@test.com', '2001-11-20', '2023-08-15 | Regular | 9.2'),
+            ('Andrea Diaz | Beca', 7, 3, 'andrea.diaz@test.com', '2000-01-20', '2024-06-10 | Irregular | 7.8'),
+            ('Miguel Angel Sosa | Deporte', 8, 4, 'migue.sosa@test.com', '2003-02-10', '2025-01-10 | Condicionado | 7.4');
         PRINT '✅ Catálogo: Alumnos (Legacy Style) insertado.';
     END
 
@@ -164,15 +149,16 @@ BEGIN TRY
     END
 
 --- -- ---------------------------------------------------------------------------------------------------------
---- -- 7. OPERACIONES (Materias , Inscripciones y Calificaciones).
+--- -- 7. OPERACIONES (Materias , Inscripciones, Asistencias y Calificaciones).
 --- -- ---------------------------------------------------------------------------------------------------------
         IF NOT EXISTS (SELECT 1
     FROM Operaciones.Materias) -- (Uniendo Alumnos con sus Materias).
         BEGIN
-            -- Asignar materias a profesores existentes (ejemplo simple)
-        INSERT INTO Operaciones.Materias (Nombre, Creditos, ProfesorID)
-        SELECT 'Materia ' + CAST(ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS VARCHAR(5)),
-            (ABS(CHECKSUM(NEWID())) % 4) + 3,  -- créditos 3-6
+    -- Asignar materias a profesores existentes (ejemplo simple)
+        INSERT INTO Operaciones.Materias
+            (Nombre, Creditos, ProfesorID)
+        SELECT 'Materia_' + CAST(ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS VARCHAR(5)),
+            (ABS(CHECKSUM(NEWID())) % 4) + 3, -- créditos 3-6
             P.ProfesorID
         FROM Catalogos.Profesores P
         WHERE P.ProfesorID IS NOT NULL;
@@ -183,27 +169,38 @@ BEGIN TRY
     FROM Operaciones.Inscripciones) 
         BEGIN
         INSERT INTO Operaciones.Inscripciones
-            (AlumnoID, MateriaID, CicloEscolar, NotaFinal)
+            (AlumnoID, MateriaID, CicloEscolar, NotaFinal, CursoID)
         VALUES
-            (1, 1, '2025-1', NULL),
+            (1, 1, '2025-1', NULL, 1),
             -- Juan Carlos inscrito en Materia 1
-            (2, 2, '2025-1', NULL);
+            (2, 2, '2025-1', NULL, 1);
         PRINT '✅ Operaciones: Inscripciones iniciales registradas.';
+    END
+
+        IF NOT EXISTS (SELECT 1
+    FROM Operaciones.Asistencias)
+        BEGIN
+        INSERT INTO Operaciones.Asistencias
+            (InscripcionID, AlumnoID, CursoID, FechaAsistencia, Presente)
+        VALUES
+            (1, 1, 1, '2023-08-15', 1),
+            (2, 2, 2, '2023-08-15', 1);
+        PRINT '✅ Operaciones: Asistencias iniciales registradas.';
     END
 
         IF NOT EXISTS (SELECT 1
     FROM Operaciones.Calificaciones)  -- Calificaciones registros por parcial (p. ej. Parcial 1, Parcial 2).
         BEGIN
         INSERT INTO Operaciones.Calificaciones
-            (AlumnoID, CursoID, Nota)
+            (InscripcionID, ParcialNumero,AlumnoID, CursoID, Nota)
         VALUES
-            (1, 1, 85.00),
-            (2, 2, 95.0);
+            (1, 1, 1, 1, 85.00),
+            (2, 1, 2, 2, 95.00);
         PRINT '✅ Operaciones: Calificaciones parciales registradas.';
     END
 
 ---- -- --------------------------------------------------------------------------------------------------------
---- -- 8. ACTUALIZACIÓN DE CONTROL (Checkpoints con los máximos actuales).
+--- -- 8. ACTUALIZACION DE CONTROL (Checkpoints con los máximos actuales).
 --- -- ---------------------------------------------------------------------------------------------------------
     -- Alumnos
     MERGE Control.Checkpoints AS C
@@ -250,5 +247,4 @@ BEGIN CATCH
 
     IF @@TRANCOUNT > 0 ROLLBACK; -- Seguridad transaccional
 END CATCH
-
 GO
