@@ -95,21 +95,21 @@ BEGIN TRY
         INSERT INTO Catalogos.Carreras
             (NombreCarrera, DeptoID)
         VALUES
-            ('Psicología', 1),
-            ('Antropología', 1),
-            ('Ciencia Política', 1),
+            ('Psicología', 1),                          -- CarreraID = 1 = Departamento de Ciencias Sociales.
+            ('Antropología', 1),                        -- CarreraID = 2 = Departamento de Ciencias Sociales.    
+            ('Ciencia Política', 1),                    -- CarreraID = 3 = Departamento de Ciencias Sociales.    
             -- 1 = Departamento de Ciencias Sociales.
-            ('Ingeniería en Sistemas', 2),
-            ('Ingeniería Industrial', 2),
-            ('Ingeniería Electrónica', 2),
+            ('Ingeniería en Sistemas', 2),              -- CarreraID = 4 = Departamento de Ingenierías.
+            ('Ingeniería Industrial', 2),               -- CarreraID = 5 = Departamento de Ingenierías.   
+            ('Ingeniería Electrónica', 2),              -- CarreraID = 6 = Departamento de Ingenierías.
             -- 2 = Departamento de Ingenierías.
-            ('Comunicación Social', 3),
-            ('Historia', 3),
-            ('Historia', 3),
+            ('Comunicación Social', 3),                 -- CarreraID = 7 = Departamento de Humanidades y Comunicación.
+            ('Historia', 3),                            -- CarreraID = 8 = Departamento de Humanidades y Comunicación.
+            ('Historia', 3),                            -- CarreraID = 9 = Departamento de Humanidades y Comunicación.
             -- 3 = Departamento de Humanidades y Comunicación.
-            ('Odontología', 4),
-            ('Medicina', 4),
-            ('Nutrición', 4);
+            ('Odontología', 4),                         -- CarreraID = 10 = Departamento de Ciencias Biomédicas.
+            ('Medicina', 4),                            -- CarreraID = 11 = Departamento de Ciencias Biomédicas.
+            ('Nutrición', 4);                           -- CarreraID = 12 = Departamento de Ciencias Biomédicas.
         -- 4 = Departamento de Ciencias Biomédica.
         PRINT '✅ Catálogo: Carreras insertado.';
     END
@@ -234,7 +234,7 @@ BEGIN TRY
 --- -- 9. MÉTRICAS DE EJECUCIÓN.
 --- -- ---------------------------------------------------------------------------------------------------------
     PRINT '=========================================================';
-    PRINT '✅ Fase 2.1: Datos iniciales de P2 cargados con éxito.';
+    PRINT '✅ Fase 2.2: Datos iniciales de P2 cargados con éxito.';
     PRINT '⏱️ Tiempo de ejecución: ' + CAST(DATEDIFF(MILLISECOND, @StartTime, SYSUTCDATETIME()) AS VARCHAR) + ' ms.';
     PRINT '=========================================================';
 

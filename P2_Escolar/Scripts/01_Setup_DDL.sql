@@ -19,6 +19,8 @@ DESCRIPCIÓN:
 USE master;
 GO
 
+SET NOCOUNT ON;                     -- Para reducir tiempo se suprime el mensaje de "(1 filas afectadas)".
+
 SET NOCOUNT ON; -- Suprime el mensaje: "(1 filas afectadas)".
 
 IF EXISTS (SELECT * FROM sys.databases WHERE name = 'P2_EscolarDB')
