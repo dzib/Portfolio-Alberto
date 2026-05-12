@@ -22,7 +22,8 @@ DECLARE @StartTime DATETIME2 = SYSUTCDATETIME();
 -- ===================================
 -- Parámetros (ajusta según entorno)
 -- ===================================
-DECLARE @MaxRuns INT = 11;                                  -- Número de ejecuciones completas (runs).
+DECLARE @MaxRuns INT = 1;                                   -- Número de ejecuciones completas (runs).
+DECLARE @TargetNewAlu INT = 10000;                          -- Total deseado en este run (ajustar según capacidad y objetivos).
 DECLARE @CurrentRun INT = 1;
 DECLARE @BatchSize INT = 500;                               -- Parámetros de stress inserción masiva Tamaño de lote para operaciones pesadas.
 DECLARE @PauseBetweenBatches VARCHAR(8) = '00:00:01';       -- Pausa entre lotes para reducir presión en el log y evitar timeouts Formato hh:mm:ss.
@@ -265,28 +266,34 @@ BEGIN
     PRINT '??       Generando alumnos ...';
     PRINT '----------------------------------------------------------';
 
-    DECLARE @RowsAlu INT = 1;
-    DECLARE @OffsetAlu INT = 0;
-    WHILE @RowsAlu > 0
+    -- Cuenta cuántos alumnos ya existen con el prefijo de stress (ajusta el filtro si usas otro patrón)
+    DECLARE @Already INT = (SELECT COUNT(*) FROM Catalogos.Alumnos WHERE Email LIKE '%10000_@escolar.edu');
+    DECLARE @Remaining INT = CASE WHEN @TargetNewAlu > @Already THEN @TargetNewAlu - @Already ELSE 0 END;
+    DECLARE @InsertedTotal INT = 0;
+
+    DECLARE @MaxIters INT = 100000, @Iter INT = 0;
+    WHILE @Remaining > 0 AND @Iter < @MaxIters
     BEGIN
+        SET @Iter = @Iter + 1;
+        DECLARE @ThisBatch INT = CASE WHEN @Remaining < @BatchSize THEN @Remaining ELSE @BatchSize END;
         BEGIN TRAN;
         BEGIN TRY
             ;WITH RandRows AS (
-                SELECT TOP (@BatchSize) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
+                SELECT TOP (@ThisBatch) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
                 FROM sys.all_columns
             ), NewAlu AS (
                 SELECT
-                @NombreBase + '_ID_' + CAST((SELECT ISNULL(MAX(AlumnoID),0) FROM Catalogos.Alumnos) + rn + @OffsetAlu AS VARCHAR(20)) AS Nombre,
-                LOWER(@NombreBase) + CAST((SELECT ISNULL(MAX(AlumnoID),0) FROM Catalogos.Alumnos) + rn + @OffsetAlu AS VARCHAR(20)) + '@escolar.edu' AS Email,
-                DATEADD(DAY, -((rn + @OffsetAlu) % 36500), GETDATE()) AS FechaNacimiento,
-                -- MetaData_ETL: fecha | estatus | nota (ejemplo).
-                FORMAT(DATEADD(DAY, -ABS(CHECKSUM(NEWID())) % 1825, GETDATE()), 'yyyy-MM-dd') + ' | ' +
-                    CASE (ABS(CHECKSUM(NEWID())) % 7)
-                        WHEN 0 THEN 'REGULAR' WHEN 1 THEN 'IRREGULAR' WHEN 2 THEN 'CONDICIONAL'
-                        WHEN 3 THEN 'BAJA_TEMP' WHEN 4 THEN 'BAJA_DEFI' WHEN 5 THEN 'EGRESADO' ELSE 'TITULADO'
-                END + ' | ' + CAST((ABS(CHECKSUM(NEWID())) % 41) + 60 AS VARCHAR(5)) AS MetaData_ETL,
-                ((rn + @OffsetAlu - 1) % @CarrCount) + 1 AS CarreraID,
-                (SELECT DeptoID FROM #CarrList WHERE CarrRow = ((rn + @OffsetAlu - 1) % @CarrCount) + 1) AS DeptoID
+                    @NombreBase + '_ID_' + CAST((SELECT ISNULL(MAX(AlumnoID),0) FROM Catalogos.Alumnos) + rn + @InsertedTotal AS VARCHAR(20)) AS Nombre,
+                    LOWER(@NombreBase) + CAST((SELECT ISNULL(MAX(AlumnoID),0) FROM Catalogos.Alumnos) + rn + @InsertedTotal AS VARCHAR(20)) + '@escolar.edu' AS Email,
+                    DATEADD(DAY, -((rn + @InsertedTotal) % 36500), GETDATE()) AS FechaNacimiento,
+                    -- MetaData_ETL: fecha | estatus | nota (ejemplo).
+                    FORMAT(DATEADD(DAY, -ABS(CHECKSUM(NEWID())) % 1825, GETDATE()), 'yyyy-MM-dd') + ' | ' +
+                        CASE (ABS(CHECKSUM(NEWID())) % 7)
+                            WHEN 0 THEN 'REGULAR' WHEN 1 THEN 'IRREGULAR' WHEN 2 THEN 'CONDICIONAL'
+                            WHEN 3 THEN 'BAJA_TEMP' WHEN 4 THEN 'BAJA_DEFI' WHEN 5 THEN 'EGRESADO' ELSE 'TITULADO'
+                    END + ' | ' + CAST((ABS(CHECKSUM(NEWID())) % 41) + 60 AS VARCHAR(5)) AS MetaData_ETL,
+                    ((rn + @InsertedTotal - 1) % @CarrCount) + 1 AS CarreraID,
+                    (SELECT DeptoID FROM #CarrList WHERE CarrRow = ((rn + @InsertedTotal - 1) % @CarrCount) + 1) AS DeptoID
                 FROM RandRows
             )
             INSERT INTO Catalogos.Alumnos (Nombre, Email, FechaNacimiento, MetaData_ETL, CarreraID, DeptoID)
@@ -294,24 +301,28 @@ BEGIN
             FROM NewAlu N
             WHERE NOT EXISTS (SELECT 1 FROM Catalogos.Alumnos A WHERE A.Email = N.Email);
 
-            SET @RowsAlu = @@ROWCOUNT;
-            COMMIT;
+            DECLARE @RowsThis INT = @@ROWCOUNT;
+            SET @InsertedTotal = @InsertedTotal + @RowsThis;
+            SET @Remaining = @Remaining - @RowsThis;
 
             INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado)
-            VALUES (@CurrentRun, 'Alumnos', @OffsetAlu, @RowsAlu, 'COMMIT');
+            VALUES (@CurrentRun, 'Alumnos', @OffsetAlu, @RowsThis, 'COMMIT');
+            COMMIT;
 
-            PRINT 'Batch Alumnos insertados: ' + CAST(@RowsAlu AS VARCHAR(10)) + ' (offset ' + CAST(@OffsetAlu AS VARCHAR(10)) + ')';
-            SET @OffsetAlu = @OffsetAlu + @RowsAlu;
-            IF @RowsAlu = 0 BREAK;
+            PRINT 'Batch Alumnos insertados: ' + FORMAT(@RowsThis, 'N0') + ' | Total insertados en este run: ' + FORMAT(@InsertedTotal, 'N0');
             WAITFOR DELAY @PauseBetweenBatches;
-        END TRY
+        END
+        
         BEGIN CATCH
             IF XACT_STATE() <> 0 ROLLBACK;
-        INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Mensaje)
-        VALUES (@CurrentRun, 'Alumnos', @OffsetAlu, 0, 'ROLLBACK', ERROR_MESSAGE());
-        PRINT 'ERROR en batch Alumnos: ' + ERROR_MESSAGE();
-        THROW;
+            INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Mensaje)
+            VALUES (@CurrentRun, 'Alumnos', @InsertedTotal, 0, 'ROLLBACK', ERROR_MESSAGE());
+            THROW;
         END CATCH;
+    IF @Iter >= @MaxIters
+        BEGIN
+            RAISERROR('Máximo de iteraciones alcanzado, abortando para evitar loop infinito',16,1);
+        RETURN;
     END
 
 --- -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -463,10 +474,10 @@ BEGIN
             ),
             Sem AS (
                 SELECT B.InscripcionID, B.AlumnoID, B.CursoID, B.CicloEscolar,
-                    CASE WHEN RIGHT(B.CicloEscololar,1) = '1' THEN DATEFROMPARTS(CAST(LEFT(B.CicloEscololar,4) AS INT),1,1)
-                            ELSE DATEFROMPARTS(CAST(LEFT(B.CicloEscololar,4) AS INT),7,1) END AS SemInicio,
-                    CASE WHEN RIGHT(B.CicloEscololar,1) = '1' THEN DATEFROMPARTS(CAST(LEFT(B.CicloEscololar,4) AS INT),6,30)
-                            ELSE DATEFROMPARTS(CAST(LEFT(B.CicloEscololar,4) AS INT),12,31) END AS SemFin
+                    CASE WHEN RIGHT(B.CicloEscolar,1) = '1' THEN DATEFROMPARTS(CAST(LEFT(B.CicloEscolar,4) AS INT),1,1)
+                            ELSE DATEFROMPARTS(CAST(LEFT(B.CicloEscolar,4) AS INT),7,1) END AS SemInicio,
+                    CASE WHEN RIGHT(B.CicloEscolar,1) = '1' THEN DATEFROMPARTS(CAST(LEFT(B.CicloEscolar,4) AS INT),6,30)
+                            ELSE DATEFROMPARTS(CAST(LEFT(B.CicloEscolar,4) AS INT),12,31) END AS SemFin
                 FROM BatchIns B
             ),
             Expanded AS (
