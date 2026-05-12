@@ -130,14 +130,18 @@ BEGIN TRY
         CursoID INT CONSTRAINT FK_Ins_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID)
     );
 
+-- Tabla: una asistencia por día
     CREATE TABLE Operaciones.Asistencias (
         AsistenciaID INT PRIMARY KEY IDENTITY(1,1),
-        InscripcionID INT CONSTRAINT FK_Asis_Ins FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
+        InscripcionID INT NOT NULL CONSTRAINT FK_Asis_Ins FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
         AlumnoID INT CONSTRAINT FK_Asis_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
         CursoID INT CONSTRAINT FK_Asis_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
-        FechaAsistencia DATE DEFAULT CAST(GETDATE() AS DATE),
+        FechaAsistencia DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE),
         Presente BIT DEFAULT 1
     );
+-- Índice único para evitar más de una asistencia por día.
+    CREATE UNIQUE INDEX UX_Asistencias_Inscripcion_Dia
+    ON Operaciones.Asistencias (InscripcionID, FechaAsistencia);
 
     -- Calificaciones registros por parcial (p. ej. Parcial 1, Parcial 2).
     CREATE TABLE Operaciones.Calificaciones ( 

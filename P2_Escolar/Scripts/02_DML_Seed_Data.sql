@@ -183,8 +183,8 @@ BEGIN TRY
         INSERT INTO Operaciones.Asistencias
             (InscripcionID, AlumnoID, CursoID, FechaAsistencia, Presente)
         VALUES
-            (1, 1, 1, '2023-08-15', 1),
-            (2, 2, 2, '2023-08-15', 1);
+            (1, 1, 1, '2025-01-15', 1),
+            (2, 2, 2, '2025-01-15', 1);
         PRINT '✅ Operaciones: Asistencias iniciales registradas.';
     END
 
