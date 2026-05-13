@@ -1,7 +1,32 @@
-{ 
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 100
+{
+    "editorconfig": {
+        "root": true,
+        "globals": {
+            "indent_style": "space",
+            "indent_size": 2,
+            "end_of_line": "lf",
+            "charset": "utf-8",
+            "trim_trailing_whitespace": true,
+            "insert_final_newline": true
+        },
+        "overrides": [
+            {
+                "files": "*.sql",
+                "options": {
+                    "indent_style": "space",
+                    "indent_size": 2,
+                    "trim_trailing_whitespace": false,
+                    "insert_final_newline": false,
+                    "preserve_comments": true,
+                    "preserve_blank_lines": true
+                }
+            },
+            {
+                "files": "*.md",
+                "options": {
+                    "trim_trailing_whitespace": false
+                }
+            }
+        ]
+    }
 }
