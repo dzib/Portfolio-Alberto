@@ -50,7 +50,56 @@ BEGIN
     EXEC('CREATE SCHEMA Operaciones');
     PRINT '✅ Esquema [Operaciones] creado.';
 END;
-GO
+
+----------------------------------------------------------------------------------------------------------------
+---  Control: esquema y tabla de checkpoints (Bandera para el Stress_Test).
+----------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Control')
+BEGIN
+    EXEC('CREATE SCHEMA Control');
+    PRINT '✅ Esquema [Control] creado.';
+END;
+
+-- Tabla de checkpoints.
+IF OBJECT_ID('Control.Checkpoints','U') IS NULL
+BEGIN
+    CREATE TABLE Control.Checkpoints (
+        Entidad NVARCHAR(100) PRIMARY KEY,
+        UltimoID BIGINT,
+        FechaActualizacion DATETIME2 DEFAULT SYSUTCDATETIME()
+    );
+    PRINT '✅ Tabla [Control.Checkpoints] creada.';
+END;
+
+-- Tabla de logging
+IF OBJECT_ID('Control.LoadLog','U') IS NULL
+BEGIN
+    CREATE TABLE Control.LoadLog (
+        LoadLogID INT IDENTITY(1,1) PRIMARY KEY,
+        RunNumber INT,
+        Entidad NVARCHAR(100),
+        BatchOffset BIGINT,
+        RowsAffected INT,
+        Estado NVARCHAR(20),
+        Fecha DATETIME2 DEFAULT SYSUTCDATETIME(),
+        Mensaje NVARCHAR(4000) NULL,
+        DurationMs INT NULL
+    );
+    PRINT '✅ Tabla [Control.LoadLog] creada.';
+END;
+
+-- Tabla de métricas
+IF OBJECT_ID('Control.Metrics','U') IS NULL
+BEGIN
+    CREATE TABLE Control.Metrics (
+        MetricID INT IDENTITY(1,1) PRIMARY KEY,
+        MetricDate DATETIME2,
+        MetricName NVARCHAR(200),
+        MetricValue SQL_VARIANT,
+        Notes NVARCHAR(2000)
+    );
+    PRINT '✅ Tabla [Control.Metrics] creada.';
+END;
 
 -- ---------------------------------------------------------------------------------------------------------
 -- 3. TABLAS MAESTRAS (ESQUEMA CATALOGOS).
@@ -70,14 +119,22 @@ BEGIN TRY
         Nombre NVARCHAR(150) NOT NULL,
         Email NVARCHAR(150) CONSTRAINT UQ_Prof_Email UNIQUE,
         DeptoID INT CONSTRAINT FK_Prof_Depto FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID),
-        IsActive BIT DEFAULT 1
+        MetaData_ETL NVARCHAR(MAX),
+        IsActive BIT DEFAULT 1,
+        Sexo CHAR(1) CONSTRAINT CHK_Prof_Sexo CHECK (Sexo IN ('M','F'))
     );
+
+    CREATE INDEX IX_Profesores_Depto 
+    ON Catalogos.Profesores(DeptoID);
 
     CREATE TABLE Catalogos.Carreras (
         CarreraID INT IDENTITY(1,1) PRIMARY KEY,
         NombreCarrera VARCHAR(150) NOT NULL,
         DeptoID INT CONSTRAINT FK_Carreras_Deptos FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID)
     ); -- Vinculamos la Carrera al Departamento (Facultad).
+
+    CREATE INDEX IX_Carreras_Depto
+    ON Catalogos.Carreras(DeptoID);
 
     CREATE TABLE Catalogos.Alumnos (
         AlumnoID INT PRIMARY KEY IDENTITY(1,1),
@@ -86,79 +143,106 @@ BEGIN TRY
         DeptoID INT CONSTRAINT FK_Alumnos_Deptos FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID),
         Email NVARCHAR(150) CONSTRAINT UQ_Alu_Email UNIQUE,
         FechaNacimiento DATE,
+        Sexo CHAR(1) CONSTRAINT CHK_Alu_Sexo CHECK (Sexo IN ('M','F')),
         -- Columna Legacy para la Fase 4: FechaIngreso | Estatus | Promedio".
         MetaData_ETL NVARCHAR(MAX),
         -- Columna Destino (single-Pass ETL Ready).
-        FechaIngreso Date,
+        FechaIngreso DATE,
         EstatusAcademico NVARCHAR(50),
-        PromedioHistorico DECIMAL(4,2),
+        PromedioHistorico DECIMAL(5,2),
         CreateAt DATETIME2 DEFAULT SYSUTCDATETIME()
     );
 
+    CREATE INDEX IX_Alumnos_Carrera
+    ON Catalogos.Alumnos(CarreraID);
+    CREATE INDEX IX_Alumnos_Depto
+    ON Catalogos.Alumnos(DeptoID);
+
+    -- Cursos oficiales
     CREATE TABLE Catalogos.Cursos (
         CursoID INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(150) NOT NULL,
-        Creditos INT CONSTRAINT CK_Creditos CHECK (Creditos BETWEEN 1 AND 12),
+        Descripcion NVARCHAR(300) NOT NULL,
+        Creditos INT CONSTRAINT CK_Creditos CHECK (Creditos BETWEEN 6 AND 12),
+        Nivel NVARCHAR(50) NOT NULL,
+        DeptoID INT NOT NULL CONSTRAINT FK_Cursos_Depto FOREIGN KEY REFERENCES Catalogos.Departamentos(DeptoID)
     );
 
-    -- Estructura para logica de Llave compuesta para tabla intermedia.
-    CREATE TABLE Catalogos.CursosProfesores (
-        CursoID INT NOT NULL,
-        ProfesorID INT NOT NULL,
-        CicloLectivo VARCHAR(10) DEFAULT '2025-1',
-        CONSTRAINT PK_CursosProfesores PRIMARY KEY (CursoID, ProfesorID),
-        CONSTRAINT FK_CP_Cursos FOREIGN KEY (CursoID) REFERENCES Catalogos.Cursos(CursoID),
-        CONSTRAINT FK_CP_Profesores FOREIGN KEY (ProfesorID) REFERENCES Catalogos.Profesores(ProfesorID)
-    );
+    CREATE INDEX IX_Cursos_Depto
+    ON Catalogos.Cursos(DeptoID);
 
 --- -- ---------------------------------------------------------------------------------------------------------
 --- -- 4. TABLAS OPERATIVAS (ESQUEMA OPERACIONES).
 --- -- ---------------------------------------------------------------------------------------------------------
     CREATE TABLE Operaciones.Materias (
         MateriaID INT PRIMARY KEY IDENTITY(1,1),
+        CursoID INT NOT NULL CONSTRAINT FK_Mat_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
+        ProfesorID INT NOT NULL CONSTRAINT FK_Mat_Prof FOREIGN KEY REFERENCES Catalogos.Profesores(ProfesorID),
+        CicloEscolar NVARCHAR(20) NOT NULL CONSTRAINT CHK_Mat_Ciclo CHECK (CicloEscolar LIKE '[0-9][0-9][0-9][0-9]-[12]'),
+        Grupo NVARCHAR(5) NOT NULL,
         Nombre NVARCHAR(150) NOT NULL,
-        Creditos INT CONSTRAINT CHK_Creditos CHECK (Creditos >= 0),
-        ProfesorID INT CONSTRAINT FK_Mat_Prof FOREIGN KEY REFERENCES Catalogos.Profesores(ProfesorID)
+        Creditos INT CONSTRAINT CHK_Materias_Creditos CHECK (Creditos >= 0),
     );
 
+    CREATE INDEX IX_Materias_Curso 
+    ON Operaciones.Materias(CursoID);
+    CREATE INDEX IX_Materias_Profesor 
+    ON Operaciones.Materias(ProfesorID);
+    CREATE INDEX IX_Materias_Ciclo 
+    ON Operaciones.Materias(CicloEscolar);
+
+    -- Inscripción de alumno en materia ofertada
     CREATE TABLE Operaciones.Inscripciones (
         InscripcionID INT PRIMARY KEY IDENTITY(1,1),
-        AlumnoID INT CONSTRAINT FK_Ins_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
-        MateriaID INT CONSTRAINT FK_Ins_Mat FOREIGN KEY REFERENCES Operaciones.Materias(MateriaID),
-        CicloEscolar NVARCHAR(20),
-        NotaFinal DECIMAL(5,2) CONSTRAINT CHK_NotaRange CHECK (NotaFinal BETWEEN 0 AND 100),
-        CursoID INT CONSTRAINT FK_Ins_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID)
+        AlumnoID INT NOT NULL CONSTRAINT FK_Ins_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
+        MateriaID INT NOT NULL CONSTRAINT FK_Ins_Mat FOREIGN KEY REFERENCES Operaciones.Materias(MateriaID),
+        NotaFinal DECIMAL(5,2) NULL CONSTRAINT CHK_NotaRange CHECK (NotaFinal BETWEEN 0 AND 100),
+        CONSTRAINT UQ_Ins_Alumno_Mat UNIQUE (AlumnoID, MateriaID)
     );
+
+    -- Aplicación de  Índices para rendimiento en joins y búsquedas.
+    CREATE INDEX IX_Inscripciones_Alumno
+    ON Operaciones.Inscripciones(AlumnoID);
+    CREATE INDEX IX_Inscripciones_Materia
+    ON Operaciones.Inscripciones(MateriaID);
 
 -- Tabla: una asistencia por día
     CREATE TABLE Operaciones.Asistencias (
         AsistenciaID INT PRIMARY KEY IDENTITY(1,1),
         InscripcionID INT NOT NULL CONSTRAINT FK_Asis_Ins FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
-        AlumnoID INT CONSTRAINT FK_Asis_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
-        CursoID INT CONSTRAINT FK_Asis_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
+        AlumnoID INT NOT NULL CONSTRAINT FK_Asis_Alu FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
+        CursoID INT NOT NULL CONSTRAINT FK_Asis_Curso FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
         FechaAsistencia DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE),
         Presente BIT DEFAULT 1
     );
+
+    CREATE INDEX IX_Asistencias_Alumno 
+    ON Operaciones.Asistencias(AlumnoID);
+    CREATE INDEX IX_Asistencias_Curso 
+    ON Operaciones.Asistencias(CursoID);
 -- Índice único para evitar más de una asistencia por día.
     CREATE UNIQUE INDEX UX_Asistencias_Inscripcion_Dia
-    ON Operaciones.Asistencias (InscripcionID, FechaAsistencia);
+    ON Operaciones.Asistencias(InscripcionID, FechaAsistencia);
 
     -- Calificaciones registros por parcial (p. ej. Parcial 1, Parcial 2).
     CREATE TABLE Operaciones.Calificaciones ( 
-        CalificacionID INT PRIMARY KEY IDENTITY(1,1),
-        InscripcionID INT CONSTRAINT FK_Ins_Cal FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
-        ParcialNumero INT CONSTRAINT CHK_Parcial CHECK (ParcialNumero BETWEEN 1 AND 3),
-        AlumnoID INT CONSTRAINT FK_Cal_Alumnos FOREIGN KEY REFERENCES Catalogos.Alumnos(AlumnoID),
-        CursoID INT CONSTRAINT FK_Cal_Cursos FOREIGN KEY REFERENCES Catalogos.Cursos(CursoID),
-        Nota DECIMAL(5,2) CONSTRAINT CK_Nota CHECK (Nota BETWEEN 0 AND 100),
-        FechaAplicacion DATETIME2 DEFAULT SYSUTCDATETIME()
+        CalificacionID INT IDENTITY(1,1) PRIMARY KEY,
+        InscripcionID INT NOT NULL CONSTRAINT FK_Cal_Ins FOREIGN KEY REFERENCES Operaciones.Inscripciones(InscripcionID) ON DELETE CASCADE,
+        ParcialNumero TINYINT NOT NULL CONSTRAINT CHK_Cal_Parcial CHECK (ParcialNumero BETWEEN 1 AND 3),
+        Nota DECIMAL(5,2) NOT NULL CONSTRAINT CK_Cal_Nota CHECK (Nota BETWEEN 0 AND 100),
+        MetaData_ETL NVARCHAR(MAX),
+        FechaAplicacion DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT UQ_Cal_Ins_Parcial UNIQUE (InscripcionID, ParcialNumero)
     );
+
+    CREATE INDEX IX_Calificaciones_Inscripcion 
+    ON Operaciones.Calificaciones(InscripcionID);
 
 --- -- ---------------------------------------------------------------------------------------------------------
 --- -- 5. LOG DE EJECUCIÓN Y CIERRE DE BLOQUE
 --- -- ---------------------------------------------------------------------------------------------------------
     PRINT '=====================================================';
-    PRINT '✅ FASE 1.1: 🚀 Arquitectura P2_Escolar Creada con Éxito';
+    PRINT '✅ FASE 1: 🚀 Arquitectura P2_Escolar Creada con Éxito';
     PRINT '⏱️ Tiempo de ejecución: ' + CAST(DATEDIFF(MS, @StartTime, SYSUTCDATETIME()) AS VARCHAR) + ' ms';
     PRINT '=====================================================';
 
