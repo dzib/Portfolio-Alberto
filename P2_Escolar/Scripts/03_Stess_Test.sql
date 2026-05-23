@@ -24,7 +24,7 @@ SET XACT_ABORT ON;                                              -- Para asegura 
 DECLARE
     @StartTime DATETIME2 = SYSUTCDATETIME(),
     @MaxRuns INT = 2,                                           -- Número de ejecuciones completas (runs).
-    @CurrentRun INT = 1,
+    @CurrentRun INT = 1,                                        -- Ajustado al primer run en los siguientes se debe comentar.
     @CurrentIterProf INT = 0,
     @CurrentIterAlu INT = 0,
     @TargetNew INT = 10000,                                     -- Objetivo de registros a insertar en el run.
@@ -35,14 +35,14 @@ DECLARE
     @InsertedTotalProf INT = 0,
     @InsertedTotalAlu INT = 0,
     @InsertedTotalInsPar INT = 0,
-    @MaxIters INT = 200000,
+    @MaxIters INT = 500000,
     @MinAsis INT = 2, @MaxAsis INT = 4,                                                         -- Rango de asistencias por inscripción.
     @MinParciales INT = 2, @MaxParciales INT = 3,                                               -- Rango de parciales por inscripción.
-    @TargetNewProf INT = 5000,                                                                  -- Volumen de profesores a generar.
-    @TargetCursos INT = 200,                                                                    -- Cantidad de cursos a generar según necesidad.
-    @TargetMaterias INT = 1000,                                                                -- Número objetivo de materias.
+    @TargetNewProf INT = 1000,                                                                  -- Volumen de profesores a generar.
+    @TargetCursos INT = 500,                                                                    -- Cantidad de cursos a generar según necesidad.
+    @TargetMaterias INT = 1000,                                                                 -- Número objetivo de materias.
     @TargetNewAlu INT = 80000,                                                                  -- Objetivo de carga masiva de alumnos para Inscripciones por run.
-    @TargetInsTotal INT = 50000,                                                                -- Objetivo de incripciones total aproximado.
+    @TargetInscripciones INT = 50000,                                                           -- Objetivo de incripciones total aproximado.
     @CiclosCSV NVARCHAR(400) = '2024-1,2024-2,2025-1,2025-2,2026-1,2026-2',                     -- Ciclos a inyectar en Inscripciones.
     @DefensiveCheckpointValue BIGINT = 0;                                                       -- PRIMERA LECTURA: defensivo = 0.
 
@@ -205,21 +205,6 @@ BEGIN
     RETURN;
 END
 PRINT 'Catalogos materializados: Cursos= ' + FORMAT(@CursoCount, 'N0') + ' | Materias= ' + FORMAT(@MateriaCount, 'N0') + ' | Carreras= ' + FORMAT(@CarrCount, 'N0');
-
--- Temporales de apoyo
-IF OBJECT_ID('tempdb..#MatList') IS NOT NULL DROP TABLE #MatList;
-SELECT MateriaID, ROW_NUMBER() OVER (ORDER BY MateriaID) AS MatRow INTO #MatList FROM Operaciones.Materias;
-
-IF OBJECT_ID('tempdb..#CursoList') IS NOT NULL DROP TABLE #CursoList;
-SELECT CursoID, ROW_NUMBER() OVER (ORDER BY CursoID) AS CursoRow INTO #CursoList FROM Catalogos.Cursos;
-
-IF OBJECT_ID('tempdb..#AluList') IS NOT NULL DROP TABLE #AluList;
-SELECT AlumnoID,
-    MetaData_ETL,
-    ROW_NUMBER() OVER (ORDER BY AlumnoID) AS AluRow
-INTO #AluList
-FROM Catalogos.Alumnos;
-
 --- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 5. OUTER LOOP: runs (1..@MaxRuns).
 --- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -296,7 +281,7 @@ BEGIN
             -- Departamento 7: Artes y Diseño
             ('Artes Visuales', 7),
             ('Diseño Gráfico', 7),
-            ('Música', 7),
+            ('Arquitectura', 7),
 
             -- Departamento 8: Ciencias de la Salud Pública
             ('Salud Ambiental', 8),
@@ -308,6 +293,13 @@ BEGIN
     ELSE
     BEGIN
         PRINT 'ℹ️     Carreras nuevas ya existen, no se insertaron duplicados.';
+
+        TRUNCATE TABLE #CarrList;
+        INSERT INTO #CarrList (CarreraID, DeptoID, CarrRow)
+        SELECT CarreraID, DeptoID,
+            ROW_NUMBER() OVER (ORDER BY CarreraID) AS CarrRow
+        FROM Catalogos.Carreras
+
     END;
 
     -- Logging.
@@ -348,7 +340,7 @@ BEGIN
         BEGIN TRAN;
         BEGIN TRY
             PRINT '----------------------------------------------------------------';
-            PRINT '         Carga de Profesores...' + CAST(SYSUTCDATETIME() AS VARCHAR);
+            PRINT '         Carga de Profesores ... ' + CAST(SYSUTCDATETIME() AS VARCHAR);
             PRINT '----------------------------------------------------------------'
 
             DECLARE @NombreBaseProf NVARCHAR(50) = ISNULL(CHOOSE(FLOOR(RAND()*2)+1, 'Profesor', 'Doctor'), 'Maestro');
@@ -360,7 +352,7 @@ BEGIN
             INSERT INTO Catalogos.Profesores (Nombre, Email, DeptoID, MetaData_ETL, IsActive, Sexo)
             SELECT
                     @NombreBaseProf + '_ID_' + CAST(@RangeStartBigintProf + t.rn - 1 AS VARCHAR(20)) AS Nombre,
-                    LOWER(@NombreBaseProf) + 'UNI' + CAST(@RangeStartBigintProf + t.rn - 1 AS VARCHAR(20)) + '@escolar.edu' AS Email,
+                    LOWER(@NombreBaseProf) + 'UNI_' + CAST(@RangeStartBigintProf + t.rn - 1 AS VARCHAR(20)) + '@escolar.edu' AS Email,
                     ((t.rn - 1) % (SELECT COUNT(*) FROM Catalogos.Departamentos)) + 1 AS DeptoID,
                     CONCAT(
                         'GEN_', CAST(@RangeStartBigintProf + t.rn - 1 AS VARCHAR(20)),
@@ -392,8 +384,8 @@ BEGIN
             DECLARE @DurationMsProf INT = DATEDIFF(MILLISECOND, @StartBatchProf, @EndBatchProf);
             UPDATE Control.LoadLog SET DurationMs = @DurationMsProf WHERE LoadLogID = @LogIDProf;
 
-            PRINT 'Profesores insertados: ' + CAST(@RowsThisProf AS VARCHAR(10)) + 
-                ' | Total: ' + CAST(@InsertedTotalProf AS VARCHAR(10)) + 
+            PRINT 'Profesores insertados: ' + FORMAT(@RowsThisProf, 'N0') + 
+                ' | Total: ' + FORMAT(@InsertedTotalProf, 'N0') + 
                 ' | Iter ' + CAST(@CurrentIterProf AS VARCHAR(10));
             WAITFOR DELAY @PauseBetweenBatches;
         END TRY
@@ -440,6 +432,7 @@ BEGIN
     SELECT 
         p.ProfesorID,
         p.DeptoID,
+        p.Nombre,
         ROW_NUMBER() OVER (PARTITION BY p.DeptoID ORDER BY p.ProfesorID) AS ProfRow,
         COUNT(*) OVER (PARTITION BY p.DeptoID) AS ProfCountPerDept,
         ISNULL(m.MatCount, 0) AS CurrentMatCount
@@ -478,39 +471,40 @@ BEGIN
         BEGIN TRAN;
         BEGIN TRY
             ;WITH ToGen AS (
-                SELECT TOP (@ThisBatchCur) ROW_NUMBER() OVER (ORDER BY n) AS rn
+                SELECT TOP (@ThisBatchCur) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
                 FROM dbo.Numbers
             )
             INSERT INTO Catalogos.Cursos (Nombre, Descripcion, Creditos, Nivel, DeptoID)
             SELECT
                 CASE c.DeptoID
-                    WHEN 1 THEN CONCAT('Ciencias Sociales - ', c.NombreCarrera)
-                    WHEN 2 THEN CONCAT('Ingeniería - ', c.NombreCarrera)
-                    WHEN 3 THEN CONCAT('Humanidades - ', c.NombreCarrera)
-                    WHEN 4 THEN CONCAT('Biomédicas - ', c.NombreCarrera)
-                    WHEN 5 THEN CONCAT('Exactas - ', c.NombreCarrera)
-                    WHEN 6 THEN CONCAT('Económico-Administrativas - ', c.NombreCarrera)
-                    WHEN 7 THEN CONCAT('Artes y Diseño - ', c.NombreCarrera)
-                    WHEN 8 THEN CONCAT('Salud Pública - ', c.NombreCarrera)
+                    WHEN 1 THEN CONCAT('Desarrollo Humano - ', c.NombreCarrera)
+                    WHEN 2 THEN CONCAT('Programación - ', c.NombreCarrera)
+                    WHEN 3 THEN CONCAT('Ética Profesional - ', c.NombreCarrera)
+                    WHEN 4 THEN CONCAT('Biología - ', c.NombreCarrera)
+                    WHEN 5 THEN CONCAT('Métodos Numericos - ', c.NombreCarrera)
+                    WHEN 6 THEN CONCAT('Contabilidad - ', c.NombreCarrera)
+                    WHEN 7 THEN CONCAT('Dibujo - ', c.NombreCarrera)
+                    WHEN 8 THEN CONCAT('Botánica - ', c.NombreCarrera)
                 END AS Nombre,
                 CASE c.DeptoID
-                    WHEN 1 THEN 'Curso de fundamentos en ciencias sociales.'
+                    WHEN 1 THEN 'Curso de introductorio al la historia Humana.'
                     WHEN 2 THEN 'Curso práctico de ingeniería aplicada.'
-                    WHEN 3 THEN 'Curso de humanidades y comunicación.'
+                    WHEN 3 THEN 'Curso de humanidades y desarollo Profesional.'
                     WHEN 4 THEN 'Curso de ciencias biomédicas y salud.'
                     WHEN 5 THEN 'Curso de ciencias exactas y naturales.'
                     WHEN 6 THEN 'Curso de economía y administración.'
                     WHEN 7 THEN 'Curso de artes visuales y diseño.'
                     WHEN 8 THEN 'Curso de salud pública y epidemiología.'
                 END AS Descripcion,
-                ((ABS(CHECKSUM(c.CarreraID)) % 7) + 6) AS Creditos,  -- rango 6–12
-                CASE ((ABS(CHECKSUM(c.CarreraID)) % 3))
+                ((ABS(CHECKSUM(c.CarreraID + n.rn)) % 7) + 6) AS Creditos,  -- rango 6–12
+                CASE ((ABS(CHECKSUM(c.CarreraID + n.rn))) % 3)
                     WHEN 0 THEN 'Introductorio'
                     WHEN 1 THEN 'Intermedio'
                     WHEN 2 THEN 'Avanzado'
                 END AS Nivel,
                 c.DeptoID
-            FROM Catalogos.Carreras c;
+            FROM Catalogos.Carreras c
+            CROSS APPLY (SELECT TOP 3 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn FROM dbo.Numbers) n; -- 3 cursos por carrera.
 
             DECLARE @RowsThisCur INT = @@ROWCOUNT;
             SET @InsertedCursos += @RowsThisCur;
@@ -528,6 +522,7 @@ BEGIN
             UPDATE Control.LoadLog SET DurationMs = @DurationMsCur WHERE LoadLogID = @LogIDCur;
 
             PRINT 'Cursos insertados: ' + CAST(@RowsThisCur AS VARCHAR(10)) + ' | Total Cursos: ' + CAST(@InsertedCursos AS VARCHAR(10));
+            IF @RowsThisCur = 0 BREAK; -- 🔒 Para evitar bucles infinitos.
             WAITFOR DELAY @PauseBetweenBatches;
         END TRY
         BEGIN CATCH
@@ -540,7 +535,7 @@ BEGIN
     END
     
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 10. DIVERSIFICACIÓN DE MATERIAS (derivadas de Cursos y Carreras).
+--- -- 10. GENERACIÓN DE MATERIAS DIVERSIFICADAS CON CICLOS, GRUPOS Y BALANCEO ROUND-ROBIN.
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     -- ==============================================================
@@ -553,9 +548,9 @@ BEGIN
     DECLARE @RemainingMaterias INT = CASE WHEN @TargetMaterias > @AlreadyMaterias THEN @TargetMaterias - @AlreadyMaterias ELSE 0 END;
     DECLARE @InsertedMaterias INT = 0, @IterMaterias INT = 0;
 
-    -- Definir grupos A-B.
+    -- Definir grupos A-C.
     DECLARE @Grupos TABLE (Grupo NVARCHAR(5));
-    INSERT INTO @Grupos VALUES ('A'), ('B');
+    INSERT INTO @Grupos VALUES ('A'), ('B'), ('C');
 
     WHILE @RemainingMaterias > 0 AND @IterMaterias < @MaxIters
     BEGIN
@@ -570,11 +565,11 @@ BEGIN
         BEGIN TRAN;
         BEGIN TRY
             ;WITH ToGen AS (
-                SELECT TOP (@ThisBatchMat) ROW_NUMBER() OVER (ORDER BY n) AS rn
+                SELECT TOP (@ThisBatchMat) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
                 FROM dbo.Numbers
             ),
             ProfPick AS (
-                SELECT p.ProfesorID, p.DeptoID,
+                SELECT p.ProfesorID, p.DeptoID, p.Nombre,
                     ROW_NUMBER() OVER (PARTITION BY p.DeptoID ORDER BY p.CurrentMatCount, p.ProfesorID) AS ProfRow,
                     COUNT(*) OVER (PARTITION BY p.DeptoID) AS ProfCountPerDept
                 FROM #ProfList p
@@ -582,8 +577,8 @@ BEGIN
             INSERT INTO Operaciones.Materias (Nombre, Creditos, ProfesorID, CursoID, CicloEscolar, Grupo)
             OUTPUT inserted.ProfesorID, 1 INTO #InsertedProfCounts(ProfesorID, Inc)
             SELECT
-                CONCAT(c.Nombre, ' - ', cy.value, ' - Grupo ', g.Grupo) AS Nombre,
-                ((ABS(CHECKSUM(c.CursoID + CHECKSUM(cy.value) + CHECKSUM(g.Grupo))) % 7) + 6) AS Creditos, -- Se consideran de 6 a 12 creditos.
+                CONCAT(c.Nombre, ' - ', cy.value, ' - Grupo ', g.Grupo,' - ', p.Nombre) AS Nombre,
+                c.Creditos, -- Se toman los valores de cursos.
                 p.ProfesorID,
                 c.CursoID,
                 cy.value AS CicloEscolar,
@@ -592,7 +587,11 @@ BEGIN
             CROSS JOIN STRING_SPLIT(@CiclosCSV, ',') cy
             CROSS JOIN @Grupos g
             INNER JOIN ProfPick p ON p.DeptoID = c.DeptoID
-            WHERE p.ProfRow = ((ABS(CHECKSUM(c.CursoID + CHECKSUM(cy.value) + CHECKSUM(g.Grupo))) % p.ProfCountPerDept) + 1);
+            WHERE p.ProfRow = ((ABS(CHECKSUM(c.CursoID + CHECKSUM(cy.value) + CHECKSUM(g.Grupo))) % p.ProfCountPerDept) + 1)
+                AND NOT EXISTS (
+                    SELECT 1 FROM Operaciones.Materias m
+                    WHERE m.CursoID = c.CursoID AND m.CicloEscolar = cy.value AND m.Grupo = g.Grupo AND m.ProfesorID = p.ProfesorID
+                );
 
             DECLARE @RowsThisMat INT = @@ROWCOUNT;
             SET @InsertedMaterias += @RowsThisMat;
@@ -607,13 +606,14 @@ BEGIN
             UpdatedLoads AS (
                 SELECT pl.ProfesorID,
                     pl.DeptoID,
+                    pl.Nombre,
                     pl.CurrentMatCount + ISNULL(i.IncCount, 0) AS NewLoad
                 FROM #ProfList pl
                 LEFT JOIN Incs i ON i.ProfesorID = pl.ProfesorID
             )
             -- Reconstruir #ProfList con nuevo orden por carga (menor carga primero).
-            INSERT INTO #ProfList (ProfesorID, DeptoID, ProfRow, ProfCountPerDept, CurrentMatCount)
-            SELECT ProfesorID, DeptoID,
+            INSERT INTO #ProfList (ProfesorID, DeptoID, Nombre, ProfRow, ProfCountPerDept, CurrentMatCount)
+            SELECT ProfesorID, DeptoID, Nombre,
                 ROW_NUMBER() OVER (PARTITION BY DeptoID ORDER BY NewLoad, ProfesorID) AS ProfRow,
                 COUNT(*) OVER (PARTITION BY DeptoID) AS ProfCountPerDept,
                 NewLoad AS CurrentMatCount
@@ -631,6 +631,7 @@ BEGIN
             UPDATE Control.LoadLog SET DurationMs = @DurationMsMat WHERE LoadLogID = @LogIDMat;
 
             PRINT 'Materias insertadas: ' + FORMAT(@RowsThisMat, 'N0') + ' | Total Materias: ' + FORMAT(@InsertedMaterias, 'N0');
+            IF @RowsThisMat = 0 BREAK; -- 🔒 Para evitar bucles infinitos.
             WAITFOR DELAY @PauseBetweenBatches;
         END TRY
         BEGIN CATCH
@@ -669,7 +670,8 @@ BEGIN
         RETURN;
     END;
 
-    DECLARE @AlreadyAlu INT = (SELECT COUNT(*) FROM Catalogos.Alumnos WHERE Email LIKE '%' + @NombreBase + '%' + @EmailDomain);
+    -- Calcular cuántos ya existen con prefijo de stress.
+    DECLARE @AlreadyAlu INT = (SELECT COUNT(*) FROM Catalogos.Alumnos);
     DECLARE @RemainingAlu INT = CASE WHEN @TargetNewAlu > @AlreadyAlu THEN @TargetNewAlu - @AlreadyAlu ELSE 0 END;
 
     PRINT 'Inicio carga Alumnos. Objetivo: ' + FORMAT(@TargetNewAlu, 'N0') + ' | Ya existen: ' + CAST(@AlreadyAlu AS VARCHAR(20));
@@ -698,7 +700,7 @@ BEGIN
         BEGIN TRAN;
         BEGIN TRY
             ;WITH ToGen AS (
-                SELECT TOP (@ThisBatchAlu ) ROW_NUMBER() OVER (ORDER BY n) AS rn
+                SELECT TOP (@ThisBatchAlu ) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn
                 FROM dbo.Numbers
             )
             INSERT INTO Catalogos.Alumnos (Nombre, CarreraID, DeptoID, Email, FechaNacimiento, Sexo, MetaData_ETL)
@@ -771,121 +773,110 @@ BEGIN
     IF OBJECT_ID('tempdb..#CarrList') IS NOT NULL DROP TABLE #CarrList;
 
 --- -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- -- 11. GENERAR INSCRIPCIONES MASIVAS POR LOTES (OUTPUT -> #NewIns).
---- -- Usasando Estatus desde CursosCount según MetaData_ETL para decidir cantidad de inscripciones por alumno. ACTIVO=6, IRREGULAR=4 a 5, CONDICIONAL=3 a 4 , EGRESADO/BAJA_TEMP/BAJA_DEFI -> 0
+--- -- 11. GENERAR INSCRIPCIONES MASIVAS POR LOTES (OUTPUT -> #NewIns) SEGÚN ESTATUS DEL ALUMNO..
+--- -- Usasando el Estatus desde CursosCount según MetaData_ETL para decidir cantidad de inscripciones por alumno. ACTIVO=6, IRREGULAR=4 a 5, CONDICIONAL=3 a 4 , EGRESADO/BAJA_TEMP/BAJA_DEFI -> 0
 --- -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Se distribuye inscripciones entre varios CiclosEscolares (lista parametrizable).
     -- Buscando evitar duplicados (AlumnoID, MateriaID, CursoID, CicloEscolar).
     PRINT '--------------------------------------------------------------------------------------------------';
     PRINT '🚀         Iniciando Inscripciones ... ' + CAST(SYSUTCDATETIME() AS VARCHAR);
     PRINT '--------------------------------------------------------------------------------------------------';
-    DECLARE @CurrentRunInsPar INT = 1;
+
+    -- Temporales de apoyo
+    IF OBJECT_ID('tempdb..#AluList') IS NOT NULL DROP TABLE #AluList;
+    SELECT AlumnoID, MetaData_ETL,
+        UPPER(REPLACE(PARSENAME(REPLACE(MetaData_ETL,'|','.'),2),' ','')) AS EstatusNorm,
+        ROW_NUMBER() OVER (ORDER BY AlumnoID) AS AluRow
+    INTO #AluList
+    FROM Catalogos.Alumnos;
+
+    IF OBJECT_ID('tempdb..#MatList') IS NOT NULL DROP TABLE #MatList;
+    SELECT MateriaID, CursoID, CicloEscolar,
+        ROW_NUMBER() OVER (ORDER BY MateriaID) AS MatRow
+    INTO #MatList
+    FROM Operaciones.Materias;
 
     DECLARE @AluCount INT = (SELECT COUNT(*) FROM #AluList);
     DECLARE @MatCount INT = (SELECT COUNT(*) FROM #MatList);
 
     -- Control.
     DECLARE @AlreadyIns INT = (SELECT COUNT(*) FROM Operaciones.Inscripciones);
-    DECLARE @RemainingIns INT = CASE WHEN @TargetInsTotal > @AlreadyIns THEN @TargetInsTotal - @AlreadyIns ELSE 0 END;
-    DECLARE @Iter INT = 0;
+    DECLARE @RemainingIns INT = CASE WHEN @TargetInscripciones > @AlreadyIns THEN @TargetInscripciones - @AlreadyIns ELSE 0 END;
+    DECLARE @InsertedIns INT = 0, @IterIns INT = 0;
 
-    PRINT 'Inicio Inscripciónes. Objetivo: ' + FORMAT(@TargetInsTotal, 'N0') + ' | Ya existen: ' + CAST(@AlreadyIns AS VARCHAR(20));
+    PRINT 'Inicio Inscripciónes. Objetivo: ' + FORMAT(@TargetInscripciones, 'N0') + ' | Ya existen: ' + CAST(@AlreadyIns AS VARCHAR(20));
 
 -- Ayuda: análisis en de acuerdo a función del Estatus desde MetaData_ETL (simple, busca token).
 -- Nota : MetaData_ETL tiene formato "FechaIngreso | ESTATUS | Promedio"
-    WHILE @RemainingIns > 0 AND @Iter < @MaxIters
+    WHILE @RemainingIns > 0 AND @IterIns < @MaxIters
     BEGIN
-        SET @Iter += 1;
-        DECLARE @ThisBatchInsPar INT = CASE WHEN @RemainingIns < @BatchSize THEN @RemainingIns ELSE @BatchSize END;
-        DECLARE @StartBatchInsPar DATETIME2 = SYSUTCDATETIME();
-        DECLARE @Seed INT = ABS(CHECKSUM(CONVERT(VARCHAR(36), NEWID()))) + @Iter;
+        SET @IterIns += 1;
+        DECLARE @StartBatchIns DATETIME2 = SYSUTCDATETIME();
 
         BEGIN TRAN;
         BEGIN TRY
-            ;WITH ToGen AS (
-                SELECT TOP (@ThisBatchInsPar) ROW_NUMBER() OVER (ORDER BY n) AS rn
-                FROM dbo.Numbers
-            ),
-            -- Mapeo de generacion linea a alumno determinista.
-            MapAlu AS (
-                SELECT t.rn,
-                    ((t.rn - 1) % @AluCount) + 1 AS AluRowCalc
-                FROM ToGen t
-            ),
-            AluPick AS (
-                SELECT m.rn, a.AlumnoID, a.MetaData_ETL
-                FROM MapAlu m
-                JOIN #AluList a ON a.AluRow = m.AluRowCalc
-            ), -- Derivar el Estatus y número de materias por alumno (determinista).
-            AluPlan AS (
-                SELECT ap.rn, ap.AlumnoID,
-                    -- Extraer token de ESTATUS: tomar la segunda parte tras '|' (simple split).
-                    UPPER(REPLACE(PARSENAME(REPLACE(ap.MetaData_ETL,'|','.'),2),' ','')) AS EstatusNorm
-                FROM AluPick ap
-            ), -- Normalizar Estatus y calcular NumMaterias (determinista con CHECKSUM para rangos).
-            AluPlanNorm AS (
-                SELECT rn, AlumnoID,
+            ;WITH AluPlan AS (
+                SELECT AlumnoID,
                     CASE EstatusNorm
-                        WHEN 'ACTIVO' THEN 6
-                        WHEN 'IRREGULAR' THEN ((ABS(CHECKSUM(AlumnoID)) % 2) + 4)
-                        WHEN 'CONDICIONAL' THEN ((ABS(CHECKSUM(AlumnoID+7)) % 2) + 3)
-                        ELSE 0 END AS NumMaterias
-                FROM AluPlan
-            ), -- Cada alumno dentro N  = NumMaterias y el mapa de Materia/Course usando listado round-robin.
+                            WHEN 'ACTIVO' THEN 6
+                            WHEN 'IRREGULAR' THEN ((ABS(CHECKSUM(AlumnoID)) % 2) + 4)
+                            WHEN 'CONDICIONAL' THEN ((ABS(CHECKSUM(AlumnoID+7)) % 2) + 3)
+                            ELSE 0
+                    END AS NumMaterias
+                FROM #AluList
+            ),
             Expand AS (
-                SELECT apn.AlumnoID, v.Seq
-                FROM AluPlanNorm apn
-                CROSS APPLY ( SELECT TOP (apn.NumMaterias) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Seq) v
-            ), -- Genera distribución pseudoaleatoria reproducible por lote.
+                SELECT ap.AlumnoID, v.Seq
+                FROM AluPlan ap
+                CROSS APPLY (SELECT TOP (ap.NumMaterias) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Seq) v
+            ),
             MapToMat AS (
-                SELECT e.AlumnoID, e.Seq,
-                    ((ABS(CHECKSUM(@Seed + e.AlumnoID + e.Seq))) % @MatCount) + 1 AS MatRowCalc
+                SELECT e.AlumnoID,
+                    ((ABS(CHECKSUM(e.AlumnoID + e.Seq))) % (SELECT COUNT(*) FROM #MatList)) + 1 AS MatRowCalc
                 FROM Expand e
             )
-            -- Insertar inscripciones y capturar IDs en #NewIns.
             INSERT INTO Operaciones.Inscripciones (AlumnoID, MateriaID, NotaFinal)
             OUTPUT inserted.InscripcionID, inserted.AlumnoID, inserted.MateriaID INTO #NewIns
-            SELECT DISTINCT
-                A.AlumnoID,
-                M.MateriaID,
-                NULL -- NotaFinal se calculará después.
+            SELECT DISTINCT A.AlumnoID, M.MateriaID, NULL
             FROM MapToMat mt
             JOIN #AluList A ON A.AlumnoID = mt.AlumnoID
             JOIN #MatList M ON M.MatRow = mt.MatRowCalc
             WHERE NOT EXISTS (
-                SELECT 1 FROM Operaciones.Inscripciones i WITH ( UPDLOCK, HOLDLOCK) -- Bloque para  evitar que dos lotes paralelos inserten la misma combinación.
+                SELECT 1 FROM Operaciones.Inscripciones i
                 WHERE i.AlumnoID = A.AlumnoID AND i.MateriaID = M.MateriaID
             );
 
-            DECLARE @RowsThisInsPar INT = @@ROWCOUNT;
-            SET @InsertedTotalInsPar += @RowsThisInsPar;
-            SET @RemainingIns -= @RowsThisInsPar;
+            DECLARE @RowsThisIns INT = @@ROWCOUNT;
+            SET @InsertedIns += @RowsThisIns;
+            SET @RemainingIns -= @RowsThisIns;
             -- Log y checkpoint.
             INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Fecha, Mensaje)
-            VALUES (@CurrentRunInsPar, 'Inscripciones', @InsertedTotalInsPar, @RowsThisInsPar, 'COMMIT', SYSUTCDATETIME(),
-                    CONCAT('Iter=', @Iter, ' TargetApprox=', @TargetInsTotal, ' Remaining=', @RemainingIns));
+            VALUES (@CurrentRun, 'Inscripciones',  @InsertedIns, @RowsThisIns, 'COMMIT', SYSUTCDATETIME(),
+                    CONCAT('Iter=', @IterIns, ' TargetApprox=',  @TargetInscripciones, ' Remaining=', @RemainingIns));
             DECLARE @LogIDIns INT = SCOPE_IDENTITY();
 
             COMMIT;
 
-            DECLARE @EndBatchInsPar DATETIME2 = SYSUTCDATETIME();
-            DECLARE @DurationMsIns INT = DATEDIFF(MILLISECOND, @StartBatchInsPar, @EndBatchInsPar);
+            DECLARE @EndBatchIns DATETIME2 = SYSUTCDATETIME();
+            DECLARE @DurationMsIns INT = DATEDIFF(MILLISECOND, @StartBatchIns, @EndBatchIns);
             UPDATE Control.LoadLog SET DurationMs = @DurationMsIns WHERE LoadLogID = @LogIDIns;
 
-            PRINT 'Inscripciones insertadas en batch: ' + FORMAT(@RowsThisInsPar,'N0') +
-                ' | Total insertadas: ' + FORMAT(@InsertedTotalInsPar,'N0') +
-                ' | Iter ' + CAST(@Iter AS VARCHAR(10));
+            PRINT '✅ Inscripciones insertadas en batch: ' + FORMAT(@RowsThisIns ,'N0') +
+                ' | Total insertadas: ' + FORMAT(@InsertedIns,'N0') +
+                ' | Iter ' + CAST(@IterIns AS VARCHAR(10));
+            IF @RowsThisIns = 0 BREAK; -- 🔒 Para evitar bucles infinitos.
             WAITFOR DELAY @PauseBetweenBatches;
         END TRY
         BEGIN CATCH
             IF XACT_STATE() <> 0 ROLLBACK;
+            DECLARE @errIns NVARCHAR(4000) = ERROR_MESSAGE();
             INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Fecha, Mensaje)
-            VALUES (@CurrentRunInsPar, 'Inscripciones', @InsertedTotalInsPar, 0, 'ROLLBACK', SYSUTCDATETIME(), ERROR_MESSAGE());
-            THROW;
+            VALUES (@CurrentRun, 'Inscripciones', @InsertedIns, 0, 'ROLLBACK', SYSUTCDATETIME(),  CONCAT('Error generando Inscripciones: ', @errIns));
+            RAISERROR('❌ Error generando Inscripciones: %s',16,1,@errIns);
         END CATCH;
 
     END
-    PRINT 'Inscripciones generadas totales (aprox): ' + FORMAT(@InsertedTotalInsPar, 'N0');
+    PRINT 'Inscripciones generadas totales (aprox): ' + FORMAT(@InsertedIns, 'N0');
 
 --- -- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 12. INSERCION DE CALIFICACIÓNES PARCIALES POR INSCRIPCIONID (1-3 parciales por inscripción, evitando duplicados).
@@ -895,10 +886,8 @@ BEGIN
     PRINT '📝           Generando Calificaciones Parciales ... ' + CAST(SYSUTCDATETIME() AS VARCHAR);
     PRINT '-----------------------------------------------------------------------------------------------';
 
-    DECLARE @BatchSizeCal INT = 20000;
-    DECLARE @PauseBetweenBatchesCal TIME = '00:00:01';
+    DECLARE @BatchSizeCal INT = 50000;
     DECLARE @MaxItersCal INT = 200000;
-    DECLARE @CurrentRunCal INT = 1;
     
     -- Asegurar #NewInsCal existe (si no, tomar inscripciones recientes).
     IF OBJECT_ID('tempdb..#NewInsCal') IS NULL
@@ -969,7 +958,7 @@ BEGIN
             SET @Processed += @ThisBatchCal;
 
             INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Fecha, Mensaje)
-            VALUES (@CurrentRunCal, 'Calificaciones', @Processed, @RowsCal, 'COMMIT', SYSUTCDATETIME(),
+            VALUES (@CurrentRun, 'Calificaciones', @Processed, @RowsCal, 'COMMIT', SYSUTCDATETIME(),
                     CONCAT('Iter=', @IterCal, ' BatchIns=', @ThisBatchCal, ' RowsCal=', @RowsCal));
             DECLARE @LogIDCal INT = SCOPE_IDENTITY();
 
@@ -982,13 +971,14 @@ BEGIN
             PRINT 'Calificaciones insertadas en batch: ' + FORMAT(@RowsCal,'N0') +
                     ' | Total procesadas: ' + FORMAT(@Processed,'N0') +
                     ' | Iter ' + CAST(@IterCal AS VARCHAR(10));
-            WAITFOR DELAY @PauseBetweenBatchesCal;
+            IF @RowsCal = 0 BREAK;
+            WAITFOR DELAY @PauseBetweenBatches;
 
         END TRY
         BEGIN CATCH
             IF XACT_STATE() <> 0 ROLLBACK;
                 INSERT INTO Control.LoadLog (RunNumber, Entidad, BatchOffset, RowsAffected, Estado, Fecha, Mensaje)
-                VALUES (@CurrentRunCal, 'Calificaciones', @Processed, 0, 'ROLLBACK', SYSUTCDATETIME(), ERROR_MESSAGE());
+                VALUES (@CurrentRun, 'Calificaciones', @Processed, 0, 'ROLLBACK', SYSUTCDATETIME(), ERROR_MESSAGE());
             THROW;
         END CATCH;
 
@@ -1169,7 +1159,7 @@ BEGIN
     PRINT 'Métricas Run: ' + CAST(@CurrentRun AS VARCHAR(3)) + ' Alumnos='+CAST(@CntAlu AS VARCHAR(12)) + ' Inscripciones=' + CAST(@CntIns AS VARCHAR(12)) + ' Calificaciones=' + CAST(@CntCal AS VARCHAR(12)) + ' Asistencias=' + CAST(@CntAsi AS VARCHAR(12));
 
 -- Preparar siguiente run
-    SET @CurrentRun = @CurrentRun + 1;
+    SET @CurrentRun += 1;
     -- Limpiar #NewIns para la siguiente iteración si se desea regenerar nuevas inscripciones en cada run.
     -- NOTA: durante pruebas deja las temp tables para inspección
     IF OBJECT_ID('tempdb..#Ciclos') IS NOT NULL DROP TABLE #Ciclos;
@@ -1205,4 +1195,3 @@ BEGIN
     WAITFOR DELAY @PauseBetweenBatches;
     PRINT '--------------------Stress Test integrado finalizado-----------------------------------';
 END 
-
