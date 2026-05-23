@@ -211,8 +211,6 @@ BEGIN TRY
 -- ---------------------------------------------------------------------------------------------------------
 -- 6. TABLAS MAESTRAS (ESQUEMA CATALOGOS).
 -- ---------------------------------------------------------------------------------------------------------
-
-
     CREATE TABLE Catalogos.Departamentos (
         DeptoID INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(150) NOT NULL,

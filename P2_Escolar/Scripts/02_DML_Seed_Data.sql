@@ -20,7 +20,6 @@ INSTRUCCIONES | ARCHIVO: 02_DML_Seed_P2_Escolar.
     - Revisar Control.LoadLog tras la ejecución.
 ============================================================================================================
 */
-
 USE P2_EscolarDB;
 GO
 
@@ -94,7 +93,6 @@ BEGIN TRY
         SET @end_cpu = ISNULL((SELECT cpu_time FROM sys.dm_exec_requests WHERE session_id = @@SPID),0);
         SET @end_reads = ISNULL((SELECT logical_reads FROM sys.dm_exec_requests WHERE session_id = @@SPID),0);
         SET @end_writes = ISNULL((SELECT writes FROM sys.dm_exec_requests WHERE session_id = @@SPID),0);
-
 
         UPDATE Control.LoadLog
         SET DurationMs = DATEDIFF(MILLISECOND, @blkStart, @blkEnd),
@@ -801,7 +799,6 @@ BEGIN TRY
         VALUES (@CurrentRun, 'Operaciones.Calificaciones', 0, @rowsAffected, 'COMMIT', SYSUTCDATETIME(), 'Calificaciones iniciales insertadas');
         SET @logId = SCOPE_IDENTITY();
 
-
         COMMIT;
 
         SET @blkEnd = SYSUTCDATETIME();
@@ -844,7 +841,6 @@ BEGIN CATCH
     PRINT '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!';
     IF @@TRANCOUNT > 0 ROLLBACK; -- Seguridad transaccional
 END CATCH;
-
 
 ---- -- --------------------------------------------------------------------------------------------------------
 --- -- 8. CONSULTAS DE VERIFICACIÓN (manualmente posterior a ejecutar 02_DML).
