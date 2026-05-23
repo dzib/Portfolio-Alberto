@@ -3,11 +3,12 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE: 3 -  Stress Test & Data Quality Shield (Parametrizable).
 AUTOR: Alberto Dzib
-VERSIÓN: 2.3 (Retrofitting) - Script end-to-end para staging
+VERSIÓN: 3.0 (Retrofitting) - Script end-to-end para staging
 DESCRIPCIÓN: 
     - Script de stress test adaptado para cargas grandes. Procesa inscripciones, asistencias y actualización de NotaFinal en lotes para reducir uso de log y evitar timeouts. 
-    - Con generación determinista para asistencias y evita NEWID() en comprobaciones críticas.
+    - Con generación para Operaciones.Materias, Inscripciones, Calificaciones y Asistencias.
     - Generación de datos no atómicos en columna Metadata_ETL para futuro proceso de limpieza.
+    - Registra métricas de ejecución en Control.LoadLog.
 ================================================================================================================================================================================================
 */
 USE P2_EscolarDB;
@@ -21,10 +22,11 @@ SET XACT_ABORT ON;                                              -- Para asegura 
 -- ===================================
 -- Parámetros (CONFIGURACIÓN GLOBAL).
 -- ===================================
+DECLARE @CurrentRun INT = ISNULL((SELECT MAX(RunNumber) FROM Control.LoadLog),0) + 1;
+
 DECLARE
     @StartTime DATETIME2 = SYSUTCDATETIME(),
     @MaxRuns INT = 2,                                           -- Número de ejecuciones completas (runs).
-    @CurrentRun INT = 1,                                        -- Ajustado al primer run en los siguientes se debe comentar.
     @CurrentIterProf INT = 0,
     @CurrentIterAlu INT = 0,
     @TargetNew INT = 10000,                                     -- Objetivo de registros a insertar en el run.
@@ -197,7 +199,6 @@ DECLARE @CursoCount INT = (SELECT COUNT(*) FROM #Cursos);
 DECLARE @MateriaCount INT = (SELECT COUNT(*) FROM #Materias);
 DECLARE @CarrCount INT = (SELECT COUNT(*) FROM #CarrList);
 DECLARE @NewIns INT = (SELECT COUNT(*) FROM #NewIns);
-
 
 IF @CarrCount = 0 OR @CursoCount = 0 OR @MateriaCount = 0
 BEGIN
@@ -651,7 +652,6 @@ BEGIN
     IF OBJECT_ID('tempdb..#ProfList') IS NOT NULL DROP TABLE #ProfList;
     IF OBJECT_ID('tempdb..#InsertedProfCounts') IS NOT NULL DROP TABLE #InsertedProfCounts;
 
-
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 9. CARGA MASIVA DE ALUMNOS ( Usando sp_sequence_get_range (con conversión sql_variant -> bigint).
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1077,57 +1077,8 @@ BEGIN
     PRINT 'Asistencias generadas totales (aprox): ' + CAST(@ProcessedIns * @SessionsPerIns AS VARCHAR(20));
 
 --- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- -- > 13.  ACTUALIZACION: Para checkpoints (para control de FK en procesos posteriores).
+--- -- > 13.  ACTUALIZACION (para control de FK en procesos posteriores).
 --- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Insertar checkpoints
-    -- Alumnos
-    MERGE Control.Checkpoints AS C
-    USING (SELECT 'Alumnos' AS Entidad, ISNULL(MAX(AlumnoID),0) AS UltimoID FROM Catalogos.Alumnos) AS S
-    ON C.Entidad = S.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = S.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (S.Entidad, S.UltimoID, SYSUTCDATETIME());
-
-    -- Profesores
-    MERGE Control.Checkpoints AS C
-    USING (SELECT 'Profesores' AS Entidad, ISNULL(MAX(ProfesorID),0) AS UltimoID FROM Catalogos.Profesores) AS S
-    ON C.Entidad = S.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = S.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (S.Entidad, S.UltimoID, SYSUTCDATETIME());
-
-    -- Cursos
-    MERGE Control.Checkpoints AS C
-    USING (SELECT 'Cursos' AS Entidad, ISNULL(MAX(CursoID),0) AS UltimoID FROM Catalogos.Cursos) AS S
-    ON C.Entidad = S.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = S.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (S.Entidad, S.UltimoID, SYSUTCDATETIME());
-
-    -- Materias
-    MERGE Control.Checkpoints AS C
-    USING (SELECT 'Materias' AS Entidad, ISNULL(MAX(MateriaID),0) AS UltimoID FROM Operaciones.Materias) AS S
-    ON C.Entidad = S.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = S.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (S.Entidad, S.UltimoID, SYSUTCDATETIME());
-
-    MERGE Control.Checkpoints AS CkpI
-    USING (SELECT 'Inscripciones' AS Entidad, ISNULL(MAX(InscripcionID),0) AS UltimoID
-    FROM Operaciones.Inscripciones) AS SI
-    ON CkpI.Entidad = SI.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = SI.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (SI.Entidad, SI.UltimoID, SYSUTCDATETIME());
-
-    MERGE Control.Checkpoints AS CkpC
-    USING (SELECT 'Calificaciones' AS Entidad, ISNULL(MAX(CalificacionID),0) AS UltimoID
-    FROM Operaciones.Calificaciones) AS SCal
-    ON CkpC.Entidad = SCal.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = SCal.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (SCal.Entidad, SCal.UltimoID, SYSUTCDATETIME());
-
-    MERGE Control.Checkpoints AS CkpA
-    USING (SELECT 'Asistencias' AS Entidad, ISNULL(MAX(AsistenciaID),0) AS UltimoID
-    FROM Operaciones.Asistencias) AS SEn
-    ON CkpA.Entidad = SEn.Entidad
-    WHEN MATCHED THEN UPDATE SET UltimoID = SEn.UltimoID, FechaActualizacion = SYSUTCDATETIME()
-    WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (SEn.Entidad, SEn.UltimoID, SYSUTCDATETIME());
 
     -- Métricas resumidas
     INSERT INTO Control.Metrics (MetricDate, MetricName, MetricValue, Notes)
