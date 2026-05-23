@@ -3,11 +3,12 @@
 PROYECTO: P2_Escolar - Sistema de Gestión Académica
 FASE: 3 -  Stress Test & Data Quality Shield (Parametrizable).
 AUTOR: Alberto Dzib
-VERSIÓN: 2.3 (Retrofitting) - Script end-to-end para staging
+VERSIÓN: 3.0 (Retrofitting) - Script end-to-end para staging
 DESCRIPCIÓN: 
     - Script de stress test adaptado para cargas grandes. Procesa inscripciones, asistencias y actualización de NotaFinal en lotes para reducir uso de log y evitar timeouts. 
-    - Con generación determinista para asistencias y evita NEWID() en comprobaciones críticas.
+    - Con generación para Operaciones.Materias, Inscripciones, Calificaciones y Asistencias.
     - Generación de datos no atómicos en columna Metadata_ETL para futuro proceso de limpieza.
+    - Registra métricas de ejecución en Control.LoadLog.
 ================================================================================================================================================================================================
 */
 USE P2_EscolarDB;
@@ -21,11 +22,17 @@ SET XACT_ABORT ON;                                              -- Para asegura 
 -- ===================================
 -- Parámetros (CONFIGURACIÓN GLOBAL).
 -- ===================================
+DECLARE @CurrentRun INT = ISNULL((SELECT MAX(RunNumber) FROM Control.LoadLog),0) + 1;
+
 DECLARE
     @StartTime DATETIME2 = SYSUTCDATETIME(),
 <<<<<<< HEAD
+<<<<<<< HEAD
     @MaxRuns INT = 1,                                           -- Número de ejecuciones completas (runs).
     @CurrentRun INT = 1,
+=======
+    @MaxRuns INT = 2,                                           -- Número de ejecuciones completas (runs).
+>>>>>>> feature/P2-Executive-Diorama
     @CurrentIterProf INT = 0,
     @TargetNew INT = 10000,                                     -- Objetivo de registros a insertar en el run.
     @BatchSize INT = 20000,                                      -- Parámetros de stress inserción masiva Tamaño de lote para operaciones pesadas.
@@ -234,7 +241,6 @@ DECLARE @CursoCount INT = (SELECT COUNT(*) FROM #Cursos);
 DECLARE @MateriaCount INT = (SELECT COUNT(*) FROM #Materias);
 DECLARE @CarrCount INT = (SELECT COUNT(*) FROM #CarrList);
 DECLARE @NewIns INT = (SELECT COUNT(*) FROM #NewIns);
-
 
 IF @CarrCount = 0 OR @CursoCount = 0 OR @MateriaCount = 0
 BEGIN
@@ -761,7 +767,6 @@ BEGIN
     IF OBJECT_ID('tempdb..#DeptList') IS NOT NULL DROP TABLE #DeptList;
     IF OBJECT_ID('tempdb..#ProfList') IS NOT NULL DROP TABLE #ProfList;
     IF OBJECT_ID('tempdb..#InsertedProfCounts') IS NOT NULL DROP TABLE #InsertedProfCounts;
-
 
 --- -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --- -- 9. CARGA MASIVA DE ALUMNOS ( Usando sp_sequence_get_range (con conversión sql_variant -> bigint).
@@ -1924,8 +1929,9 @@ BEGIN
     VALUES ('Asistencias', @CurrentRunAsis, SYSUTCDATETIME(), (SELECT COUNT(*) FROM Operaciones.Asistencias), 'OK', 'Asistencias generadas');
 =======
 --- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---- -- > 13.  ACTUALIZACION: Para checkpoints (para control de FK en procesos posteriores).
+--- -- > 13.  ACTUALIZACION (para control de FK en procesos posteriores).
 --- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<<<<<<< HEAD
 -- Insertar checkpoints
     -- Alumnos
     MERGE Control.Checkpoints AS C
@@ -1975,6 +1981,8 @@ BEGIN
     ON CkpA.Entidad = SEn.Entidad
     WHEN MATCHED THEN UPDATE SET UltimoID = SEn.UltimoID, FechaActualizacion = SYSUTCDATETIME()
     WHEN NOT MATCHED THEN INSERT (Entidad, UltimoID, FechaActualizacion) VALUES (SEn.Entidad, SEn.UltimoID, SYSUTCDATETIME());
+>>>>>>> feature/P2-Executive-Diorama
+=======
 >>>>>>> feature/P2-Executive-Diorama
 
     -- Métricas resumidas
