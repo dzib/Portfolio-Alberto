@@ -1,4 +1,4 @@
-# 🚀 End-to-End Data Engineering Portfolio - 👷 Alberto Dzib 📊
+# 🚀 Portfolio - 👷 Alberto Dzib 📊
 
 > *“Convirtiendo el caos en estructuras atómicas: Ingeniería de datos diseñada para el día a día”*
 
