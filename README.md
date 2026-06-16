@@ -11,7 +11,7 @@
 > 👨‍💻 Perfil Profesional
 >
 > 📖 ¡Bienvenido a mi portafolio!
-> **Ingeniero de Datos Híbrido** con enfoque en arquitecturas de alto rendimiento y resiliencia. Especialista en transformar entornos críticos y metadata desestructurada en ecosistemas de información atómica mediante el **Dzib Standard (V2.1.0).**
+> **Ingeniero de Datos & Consultor Independiente** especializado en arquitecturas de alto rendimiento, resiliencia de bases de datos y migración de sistemas legacy. Experto en transformar entornos críticos y metadatos desestructurados en ecosistemas de información optimizados mediante el **Dzib Standard (V2.1.0).**
 
 **Core Stack:** `SQL Server 2025` | `Python 3.13` | `Git Flow` | `Excel BI (ODBC)`
 
@@ -26,14 +26,14 @@
 
 ---
 
-## 🎯 Objetivos del portafolio
+## 🎯 Objetivos del Portafolio Técnico
 
-* Con cada proyecto se busca simular un entorno de negocio distinto.
+* Desarrollo de arquitecturas de grado empresarial aplicadas a casos de uso de negocio reales.
 
-- 🗂️ **Modelado de datos* y Tablas jerárquicas normalizadas*: diseño de esquemas relacionales con integridad referencial y reglas de negocio.
-- 📈 **Generación masiva de datasets realistas**
-- ⏳ **Diversidad temporal en registros, fechas variadas para análisis de tendencias**
-- 🔍 **Consultas analíticas para BI y dashboards**
+- 🗂️ **Modelado de Datos:** Diseño de esquemas relacionales robustos con integridad referencial y reglas de negocio complejas.
+- 📈 **Ingesta de Alto Rendimiento:** Generación y procesamiento masivo de datasets realistas optimizando la latencia de escritura.
+- ⏳ **Análisis Temporal:** Estructuración de series de tiempo y diversidad cronológica para análisis de tendencias de negocio.
+- 🔍 **Disponibilidad Analítica:** Creación de vistas analíticas optimizadas para herramientas de BI y toma de decisiones.
 
 ---
 
@@ -219,14 +219,14 @@ graph LR
 - **BI:** Dashboard interactivo integrado en VS Code con **PyGWalker** para análisis exploratorio.
 - **Key Skills:** Data Analytics, Troubleshooting de Entorno, Orquestación Transaccional.
 
-### 🐍 [P3] Pipeline Híbrido: Retail & Big Data (v3.0.0)
+### 🐍 [P3] Pipeline Híbrido de Alto Rendimiento: Retail (v3.1.0)
 
-*Integración avanzada de Python y SQL para el procesamiento de volúmenes masivos.*
+*Integración avanzada de Python y SQL para optimización de I/O y procesamiento de flujos veloces.*
 
-- **Ingesta:** Generación y carga de **50,000 registros** sintéticos en **1.84 segundos**.
-- **ETL:** Normalización de metadatos no  atómicos  mediante **CTEs** y actualización masiva (809 ms).
-- **BI:** Reporte de analítica en consola con **Pandas**, logrando tiempos de respuesta de **0.53 s**.
-- **Key Skills:** Orquestación híbrida, Middleware ODBC, Optimización de I/O.
+- **Ingesta:** Generación y carga masiva de **50,000 registros** en **1.84 segundos** mediante subprocesos híbridos.
+- **ETL:** Normalización de metadatos no atómicos mediante **CTEs** y actualización por lotes (809 ms).
+- **BI:** Reporte analítico automatizado en consola con **Pandas**, logrando tiempos de respuesta de **0.53 s**.
+- **Key Skills:** Orquestación híbrida, Middleware ODBC, Optimización de I/O en hardware.
 
 ### 🎓 [P2] Sistema de Gestión Académica (P2_Escolar / v2.1.0)
 
@@ -253,7 +253,7 @@ Ecosistema escolar resiliente con triple extracción y analítica presupuestaria
 *Simulación de migración de un sistema Legacy con datos no atómicos a una arquitectura optimizada para BI.*
 
 |      Dimensión      |   Estado Legacy (Origen)   |                        Estado Optimizado                        |
-| :------------------: | :-------------------------: | :-------------------------------------------------------------: |
+| :-----------------: | :------------------------: | :-------------------------------------------------------------: |
 | **Atomicidad** |     `Prod_Ref_3 \| V3`     |  **Nombre:** `Prod_Ref_3` \| **Modelo:** `V3`  |
 | **Geografía** |     `queretaro \| QRO`     |           `Querétaro` (Capitalización y Acentos)           |
 |  **Estatus**  |   `PAGADO \| COMPLETADO`   |              `Pagado` (Unificación Semántica)              |
