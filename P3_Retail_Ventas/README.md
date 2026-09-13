@@ -1,7 +1,7 @@
 # 🐍 Proyecto 3: Pipeline Híbrido Retail/Ventas (Python + SQL Server)
 
 ## 📌 Descripción General
-* Implementación de una arquitectura híbrida avanzada para el procesamiento de Big Data, integrando Python como motor de orquestación y generación de datos, y SQL Server 2025 como motor de almacenamiento masivo, limpieza y normalización.
+* Implementación de una arquitectura híbrida avanzada para el procesamiento de Alto Rendimiento, integrando Python como motor de orquestación, generación de datos, SQL Server 2025 como motor de almacenamiento masivo, limpieza y normalización.
 * Arquitectura diseñada para alta disponibilidad, capaz de escalar de 50k a 1M de registros manteniendo una tasa de ingesta de ~27,000 registros por segundo.
 
 ---

@@ -1,4 +1,4 @@
-# 🚀 End-to-End Data Engineering Portfolio - 👷 Alberto Dzib 📊
+# 🚀 Portfolio - 👷 Alberto Dzib 📊
 
 > *“Convirtiendo el caos en estructuras atómicas: Ingeniería de datos diseñada para el día a día”*
 
@@ -11,7 +11,7 @@
 > 👨‍💻 Perfil Profesional
 >
 > 📖 ¡Bienvenido a mi portafolio!
-> **Ingeniero de Datos Híbrido** con enfoque en arquitecturas de alto rendimiento y resiliencia. Especialista en transformar entornos críticos y metadata desestructurada en ecosistemas de información atómica mediante el **Dzib Standard (V2.1.0).**
+> **Ingeniero de Datos & Consultor Independiente** especializado en arquitecturas de alto rendimiento, resiliencia de bases de datos y migración de sistemas legacy. Experto en transformar entornos críticos y metadatos desestructurados en ecosistemas de información optimizados mediante el **Dzib Standard (V2.1.0).**
 
 **Core Stack:** `SQL Server 2025` | `Python 3.13` | `Git Flow` | `Excel BI (ODBC)`
 
@@ -24,16 +24,21 @@
 - Ejemplos prácticos para dashboards y BI.
 - Este portafolio aporta valor como base técnica para proyectos de transformación digital y ciencia de datos.
 
+## -🔑 Propósito del Proyecto -
+
+Este portafolio nace de la necesidad de contar con ejemplos **realistas y reproducibles** en análisis de datos, sin comprometer información privada de empresas.
+Su objetivo es servir como **biblioteca abierta de ejercicios** y como referencia de portafolio profesional para quienes buscan demostrar habilidades en BI, ETL y visualización de datos.
+
 ---
 
-## 🎯 Objetivos del portafolio
+## 🎯 Objetivos del Portafolio Técnico
 
-* Con cada proyecto se busca simular un entorno de negocio distinto.
+* Desarrollo de arquitecturas de grado empresarial aplicadas a casos de uso de negocio reales.
 
-- 🗂️ **Modelado de datos* y Tablas jerárquicas normalizadas*: diseño de esquemas relacionales con integridad referencial y reglas de negocio.
-- 📈 **Generación masiva de datasets realistas**
-- ⏳ **Diversidad temporal en registros, fechas variadas para análisis de tendencias**
-- 🔍 **Consultas analíticas para BI y dashboards**
+- 🗂️ **Modelado de Datos:** Diseño de esquemas relacionales robustos con integridad referencial y reglas de negocio complejas.
+- 📈 **Ingesta de Alto Rendimiento:** Generación y procesamiento masivo de datasets realistas optimizando la latencia de escritura.
+- ⏳ **Análisis Temporal:** Estructuración de series de tiempo y diversidad cronológica para análisis de tendencias de negocio.
+- 🔍 **Disponibilidad Analítica:** Creación de vistas analíticas optimizadas para herramientas de BI y toma de decisiones.
 
 ---
 
@@ -51,11 +56,11 @@ En este portafolio se buscó aplicar un rigor de ingeniería en cada línea de c
 
 ### Matriz de Competencias Técnicas (Key Skills)
 
-|   Tecnología   |                                                          Badges                                                          |                                           Especialidad y Dominio                                           |
-| :-------------: | :----------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+|   Tecnología   |                                                           Badges                                                           |                                           Especialidad y Dominio                                           |
+| :-------------: | :------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
 |   SQL Server   | ![SQL](https://learn.microsoft.com/en-us/training/achievements/configure-sql-server-resources-for-optimal-performance.svg) |         Arquitecturas de alto rendimiento,**Single-Pass Processing** , y normalización 1NF.         |
 |     Python     |                           ![Python](https://img.icons8.com/?size=128&id=OhhCHl3xDHfn&format=png)                           | Orquestación de pipelines, manipulación de grandes volúmenes de datos y automatización de procesos ETL. |
-|    Data Viz    |                         ![Dashboard](https://img.icons8.com/?size=160&id=wWncQUpoODJf&format=png)                         |     Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.     |
+|    Data Viz    |                          ![Dashboard](https://cdn-icons-png.flaticon.com/512/10397/10397128.png)                          |     Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.     |
 |  Data Quality  |                         ![Data Quality](https://cdn-icons-png.flaticon.com/512/10179/10179085.png)                         |     **Data Cleansing** avanzado: corrección de acentos, capitalización y atomicidad semántica.     |
 | Infraestructura |               ![Tropy](https://learn.microsoft.com/en-us/training/achievements/understand-data-concepts.svg)               | Gestión de versiones, automatización de servicios de SO y configuración de entornos de alto rendimiento. |
 
@@ -219,14 +224,14 @@ graph LR
 - **BI:** Dashboard interactivo integrado en VS Code con **PyGWalker** para análisis exploratorio.
 - **Key Skills:** Data Analytics, Troubleshooting de Entorno, Orquestación Transaccional.
 
-### 🐍 [P3] Pipeline Híbrido: Retail & Big Data (v3.0.0)
+### 🐍 [P3] Pipeline Híbrido de Alto Rendimiento: Retail (v3.1.0)
 
-*Integración avanzada de Python y SQL para el procesamiento de volúmenes masivos.*
+*Integración avanzada de Python y SQL para optimización de I/O y procesamiento de flujos veloces.*
 
-- **Ingesta:** Generación y carga de **50,000 registros** sintéticos en **1.84 segundos**.
-- **ETL:** Normalización de metadatos no  atómicos  mediante **CTEs** y actualización masiva (809 ms).
-- **BI:** Reporte de analítica en consola con **Pandas**, logrando tiempos de respuesta de **0.53 s**.
-- **Key Skills:** Orquestación híbrida, Middleware ODBC, Optimización de I/O.
+- **Ingesta:** Generación y carga masiva de **50,000 registros** en **1.84 segundos** mediante subprocesos híbridos.
+- **ETL:** Normalización de metadatos no atómicos mediante **CTEs** y actualización por lotes (809 ms).
+- **BI:** Reporte analítico automatizado en consola con **Pandas**, logrando tiempos de respuesta de **0.53 s**.
+- **Key Skills:** Orquestación híbrida, Middleware ODBC, Optimización de I/O en hardware.
 
 ### 🎓 [P2] Sistema de Gestión Académica (P2_Escolar / v2.1.0)
 
@@ -310,6 +315,11 @@ Mi meta es la automatización total y la integración con la nube:
 - [ ] **Visualización Avanzada:** Integración de los flujos analíticos actuales con **Power BI** mediante DirectQuery.
 - [ ] **Orquestación de Procesos:** Automatización de tareas masivas mediante **Task Schedulers** y monitoreo de salud de datos.
 
+## 🌍 Impacto Comunitario
+
+Este repositorio busca **democratizar el aprendizaje práctico** en ingeniería de datos.
+Al ofrecer casos reproducibles y abiertos, permite que cualquier persona pueda **demostrar sus habilidades técnicas** sin depender de información confidencial de empresas.
+
 ---
 
 ### **👤 Sobre Mí**
@@ -325,7 +335,7 @@ Experto en procesos de  **Retrofitting de Datos** , transformando sistemas legac
 ¿Tienes un reto de datos o buscas optimizar tus pipelines? Estoy listo para colaborar.
 
 | [LinkedIn](https://www.linkedin.com/in/jesusalberto-dzib-ku/) | **[✉️ Email](dzibjesusalberto@gmail.com)** | **Portafolio Web** |
-| ---------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
+| ------------------------------------------------------------ | ------------------------------------------------- | ------------------------ |
 
 ---
 
