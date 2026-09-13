@@ -8,6 +8,8 @@
 ![Power BI](https://img.shields.io/badge/PowerBI-Dashboard-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+![Educational Purpose](https://img.shields.io/badge/Purpose-Educational-blue)
+
 > 👨‍💻 Perfil Profesional
 >
 > 📖 ¡Bienvenido a mi portafolio!
