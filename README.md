@@ -24,6 +24,11 @@
 - Ejemplos prácticos para dashboards y BI.
 - Este portafolio aporta valor como base técnica para proyectos de transformación digital y ciencia de datos.
 
+## -🔑 Propósito del Proyecto -
+
+Este portafolio nace de la necesidad de contar con ejemplos **realistas y reproducibles** en análisis de datos, sin comprometer información privada de empresas.
+Su objetivo es servir como **biblioteca abierta de ejercicios** y como referencia de portafolio profesional para quienes buscan demostrar habilidades en BI, ETL y visualización de datos.
+
 ---
 
 ## 🎯 Objetivos del Portafolio Técnico
@@ -51,11 +56,11 @@ En este portafolio se buscó aplicar un rigor de ingeniería en cada línea de c
 
 ### Matriz de Competencias Técnicas (Key Skills)
 
-|   Tecnología   |                                                          Badges                                                          |                                           Especialidad y Dominio                                           |
-| :-------------: | :----------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+|   Tecnología   |                                                           Badges                                                           |                                           Especialidad y Dominio                                           |
+| :-------------: | :------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
 |   SQL Server   | ![SQL](https://learn.microsoft.com/en-us/training/achievements/configure-sql-server-resources-for-optimal-performance.svg) |         Arquitecturas de alto rendimiento,**Single-Pass Processing** , y normalización 1NF.         |
 |     Python     |                           ![Python](https://img.icons8.com/?size=128&id=OhhCHl3xDHfn&format=png)                           | Orquestación de pipelines, manipulación de grandes volúmenes de datos y automatización de procesos ETL. |
-|    Data Viz    |                         ![Dashboard](https://cdn-icons-png.flaticon.com/512/10397/10397128.png)                            |     Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.     |
+|    Data Viz    |                          ![Dashboard](https://cdn-icons-png.flaticon.com/512/10397/10397128.png)                          |     Creación de dashboards interactivos, análisis exploratorio de datos (EDA) y reportes ejecutivos.     |
 |  Data Quality  |                         ![Data Quality](https://cdn-icons-png.flaticon.com/512/10179/10179085.png)                         |     **Data Cleansing** avanzado: corrección de acentos, capitalización y atomicidad semántica.     |
 | Infraestructura |               ![Tropy](https://learn.microsoft.com/en-us/training/achievements/understand-data-concepts.svg)               | Gestión de versiones, automatización de servicios de SO y configuración de entornos de alto rendimiento. |
 
@@ -253,7 +258,7 @@ Ecosistema escolar resiliente con triple extracción y analítica presupuestaria
 *Simulación de migración de un sistema Legacy con datos no atómicos a una arquitectura optimizada para BI.*
 
 |      Dimensión      |   Estado Legacy (Origen)   |                        Estado Optimizado                        |
-| :-----------------: | :------------------------: | :-------------------------------------------------------------: |
+| :------------------: | :-------------------------: | :-------------------------------------------------------------: |
 | **Atomicidad** |     `Prod_Ref_3 \| V3`     |  **Nombre:** `Prod_Ref_3` \| **Modelo:** `V3`  |
 | **Geografía** |     `queretaro \| QRO`     |           `Querétaro` (Capitalización y Acentos)           |
 |  **Estatus**  |   `PAGADO \| COMPLETADO`   |              `Pagado` (Unificación Semántica)              |
@@ -310,6 +315,11 @@ Mi meta es la automatización total y la integración con la nube:
 - [ ] **Visualización Avanzada:** Integración de los flujos analíticos actuales con **Power BI** mediante DirectQuery.
 - [ ] **Orquestación de Procesos:** Automatización de tareas masivas mediante **Task Schedulers** y monitoreo de salud de datos.
 
+## 🌍 Impacto Comunitario
+
+Este repositorio busca **democratizar el aprendizaje práctico** en ingeniería de datos.
+Al ofrecer casos reproducibles y abiertos, permite que cualquier persona pueda **demostrar sus habilidades técnicas** sin depender de información confidencial de empresas.
+
 ---
 
 ### **👤 Sobre Mí**
@@ -325,7 +335,7 @@ Experto en procesos de  **Retrofitting de Datos** , transformando sistemas legac
 ¿Tienes un reto de datos o buscas optimizar tus pipelines? Estoy listo para colaborar.
 
 | [LinkedIn](https://www.linkedin.com/in/jesusalberto-dzib-ku/) | **[✉️ Email](dzibjesusalberto@gmail.com)** | **Portafolio Web** |
-| ---------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
+| ------------------------------------------------------------ | ------------------------------------------------- | ------------------------ |
 
 ---
 
